@@ -5,20 +5,13 @@ from datetime import datetime
 import streamlit as st
 
 def save_stats(user_id, event_id, score):
-    """
-    Speichert die Statistik für eine Quiz-Session eines Events.
-    :param user_id: Die ID des Benutzers
-    :param event_id: Die ID des Events
-    :param score: Die erreichte Punktzahl
-    """
     conn = create_connection()
     if conn is not None:
         try:
             cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO stats (user_id, event_id, score, timestamp) VALUES (?, ?, ?, ?)",
-                (user_id, event_id, score, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            )
+                (user_id, event_id, score, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             conn.commit()
         except Error as e:
             st.error(f"Fehler beim Speichern der Statistik: {e}")
@@ -28,16 +21,14 @@ def save_stats(user_id, event_id, score):
 def load_stats(user_id, event_id=None):
     """
     Lädt die Statistiken für einen Benutzer, optional gefiltert nach einem bestimmten Event.
-    :param user_id: Die ID des Benutzers
-    :param event_id: Die ID des Events (optional)
-    :return: Eine Liste von Statistiken (Event-Titel, Punktzahl, Datum)
+    Berücksichtigt sowohl eigene als auch geteilte Events.
     """
     conn = create_connection()
     if conn is not None:
         try:
             cursor = conn.cursor()
             if event_id:
-                # Lade Statistiken für ein bestimmtes Event
+                # Lade Statistiken für ein bestimmtes Event (auch geteilte)
                 cursor.execute("""
                     SELECT events.title, stats.score, stats.timestamp
                     FROM stats
@@ -46,14 +37,20 @@ def load_stats(user_id, event_id=None):
                     ORDER BY stats.timestamp DESC
                 """, (user_id, event_id))
             else:
-                # Lade alle Statistiken des Benutzers
+                # Lade alle Statistiken des Benutzers (eigene und geteilte Events)
                 cursor.execute("""
                     SELECT events.title, stats.score, stats.timestamp
                     FROM stats
                     JOIN events ON stats.event_id = events.id
                     WHERE stats.user_id = ?
-                    ORDER BY stats.timestamp DESC
-                """, (user_id,))
+                    UNION
+                    SELECT events.title, stats.score, stats.timestamp
+                    FROM stats
+                    JOIN events ON stats.event_id = events.id
+                    JOIN shared_events ON events.id = shared_events.event_id
+                    WHERE shared_events.shared_with_user_id = ?
+                    ORDER BY timestamp DESC
+                """, (user_id, user_id))
             stats = cursor.fetchall()
             return stats
         except Error as e:
@@ -62,36 +59,59 @@ def load_stats(user_id, event_id=None):
             conn.close()
     return []
 
-def calculate_event_performance(user_id, event_id):
-    """
-    Berechnet die durchschnittliche Punktzahl für ein bestimmtes Event.
-    :param user_id: Die ID des Benutzers
-    :param event_id: Die ID des Events
-    :return: Durchschnittliche Punktzahl
-    """
-    stats = load_stats(user_id, event_id)
-    if stats:
-        total_score = sum(stat[1] for stat in stats)
-        average_score = total_score / len(stats)
-        return average_score
-    return 0
+def calculate_progress_status(score):
+    if score < 20:
+        return "❌ Schlecht", "inverse"  # Rot als inverse Farbe
+    elif score < 50:
+        return "⚠️ Verbesserung nötig", "normal"  # Orange als normale Farbe
+    elif score < 75:
+        return "👍 Gut", "normal"  # Blau als normale Farbe
+    else:
+        return "✅ Ausgezeichnet", "normal"  # Grün als normale Farbe
 
 def display_event_statistics(user_id, event_id):
     stats = load_stats(user_id, event_id)
     if stats:
-        st.write("### Statistiken für das Event:")
-        for stat in stats:
-            st.write(f"**Event:** {stat[0]}, **Punktzahl:** {stat[1]}, **Datum:** {stat[2]}")
-
-        # Berechne die durchschnittliche Punktzahl
-        total_score = sum(stat[1] for stat in stats)
-        average_score = total_score / len(stats)
-        st.write(f"**Durchschnittliche Punktzahl:** {average_score:.2f}")
-
-        # Zeige die Entwicklung der Punktzahl über die Zeit an
-        st.write("### Entwicklung der Punktzahl über die Zeit")
-        dates = [stat[2] for stat in stats]
-        scores = [stat[1] for stat in stats]
-        st.line_chart({"Punktzahl": scores}, use_container_width=True)
+        st.markdown("### 📊 Event Fortschritt")
+        
+        # Erstelle eine schöne Tabelle mit Fortschrittsdaten
+        col1, col2 = st.columns([1, 3])
+        
+        with col1:
+            # Durchschnittliche Punktzahl
+            total_score = sum(stat[1] for stat in stats)
+            average_score = total_score / len(stats)
+            status, color = calculate_progress_status(average_score)
+            
+            st.metric("Durchschnittliche Punktzahl", 
+                     f"{average_score:.1f}%", 
+                     delta=status,
+                     delta_color=color)
+            
+            # Letzte Bewertung
+            last_score = stats[0][1]
+            status, color = calculate_progress_status(last_score)
+            
+            st.metric("Letzte Bewertung", 
+                     f"{last_score}%", 
+                     delta=status,
+                     delta_color=color)
+        
+        with col2:
+            # Detailtabelle mit allen Versuchen
+            st.markdown("### 📅 Versuchsverlauf")
+            
+            # Vorbereitung der Daten für die Tabelle
+            table_data = []
+            for stat in stats:
+                status, _ = calculate_progress_status(stat[1])
+                table_data.append({
+                    "Datum": stat[2],
+                    "Punktzahl": f"{stat[1]}%",
+                    "Status": status
+                })
+            
+            # Erstelle eine schöne Tabelle mit Streamlit
+            st.table(table_data)
     else:
         st.warning("Keine Statistiken für dieses Event gefunden.")

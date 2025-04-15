@@ -180,22 +180,44 @@ def share_event(event_id, shared_by_user_id, shared_with_username):
     if conn is not None:
         try:
             cursor = conn.cursor()
-            # Hole die Benutzer-ID des Empfängers basierend auf dem Benutzernamen
+            # Hole die Benutzer-ID des Empfängers
             cursor.execute("SELECT id FROM users WHERE username = ?", (shared_with_username,))
             shared_with_user = cursor.fetchone()
+            
             if shared_with_user:
                 shared_with_user_id = shared_with_user[0]
-                # Füge das geteilte Event in die Datenbank ein
-                cursor.execute(
-                    "INSERT INTO shared_events (event_id, shared_by_user_id, shared_with_user_id) VALUES (?, ?, ?)",
-                    (event_id, shared_by_user_id, shared_with_user_id),
-                )
-                conn.commit()
-                st.success(f"Event erfolgreich mit {shared_with_username} geteilt!")
+                
+                # Überprüfe, ob das Event bereits geteilt wurde
+                cursor.execute("""
+                    SELECT id FROM shared_events 
+                    WHERE event_id = ? AND shared_with_user_id = ?
+                """, (event_id, shared_with_user_id))
+                
+                if cursor.fetchone():
+                    st.warning(f"Event wurde bereits mit {shared_with_username} geteilt.")
+                else:
+                    # Teile das Event und alle zugehörigen Tasks
+                    cursor.execute("""
+                        INSERT INTO shared_events 
+                        (event_id, shared_by_user_id, shared_with_user_id) 
+                        VALUES (?, ?, ?)
+                    """, (event_id, shared_by_user_id, shared_with_user_id))
+                    
+                    # Teile alle Tasks des Events
+                    tasks = load_tasks(event_id)
+                    for task in tasks:
+                        cursor.execute("""
+                            INSERT INTO shared_tasks 
+                            (task_id, shared_by_user_id, shared_with_user_id) 
+                            VALUES (?, ?, ?)
+                        """, (task[0], shared_by_user_id, shared_with_user_id))
+                    
+                    conn.commit()
+                    st.success(f"Event erfolgreich mit {shared_with_username} geteilt!")
             else:
                 st.error(f"Benutzer '{shared_with_username}' nicht gefunden.")
         except Error as e:
-            st.error(f"Fehler beim Teilen des Event: {e}")
+            st.error(f"Fehler beim Teilen des Events: {e}")
         finally:
             conn.close()
 
@@ -210,7 +232,7 @@ def load_shared_events(user_id):
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT events.id, events.title, users.username
+                SELECT events.id, events.title, users.username, events.description
                 FROM shared_events
                 JOIN events ON shared_events.event_id = events.id
                 JOIN users ON shared_events.shared_by_user_id = users.id

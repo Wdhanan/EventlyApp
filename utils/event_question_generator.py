@@ -37,11 +37,18 @@ def generate_questions(event_title, tasks):
         combined_content = "\n".join([f"{task[1]}: {task[2]}" for task in tasks])  # task[1] = title, task[2] = content
 
         prompt = (
-            f"Generiere Fragen basierend auf den folgenden Aufgaben eines Events. Die Fragen sollten offen sein und aktives Lernen fördern.\n"
-            f"Für jede Frage gib ein JSON-Objekt mit zwei Schlüsseln zurück: 'frage' für die Frage und 'antwort' für die korrekte Antwort.\n"
-            f"Aufgaben: {combined_content}\n"
-            f"Gib nur das JSON zurück, nichts anderes."
-        )
+        f"Generiere 5 präzise Fragen basierend auf den folgenden Aufgaben eines Events. Die Fragen sollten:\n"
+        f"- Konkrete Fortschritte und Entscheidungen im Arbeitsprozess erfragen\n"
+        f"- Auf die tatsächlich durchgeführten Schritte eingehen (nicht nur allgemeine Fragen)\n"
+        f"- Messbare Kriterien für den Bearbeitungsstand abfragen\n"
+        f"- In JSON-Format zurückgegeben werden: [{{\"frage\": \"Frage\", \"antwort\": \"Musterantwort\"}}]\n\n"
+        f"Beispiel für gute Fragen:\n"
+        f"- \"Bei wie vielen Locations haben Sie angefragt und wie viele haben geantwortet?\"\n"
+        f"- \"Welche konkreten Vergleichskriterien waren für die Auswahl entscheidend?\"\n"
+        f"- \"Welche Meilensteine wurden bereits erreicht und welche stehen noch aus?\"\n\n"
+        f"Aufgaben: {combined_content}\n"
+        f"Gib nur das JSON zurück, nichts anderes."
+    )
 
         # Sende die Anfrage an die API
         response = client.chat.completions.create(
@@ -103,16 +110,21 @@ def evaluate_answer(question, user_answer, correct_answer):
     """
     try:
         prompt = (
-            f"Du bist ein Lehrer, der die Antwort eines Schülers bewertet.\n"
+            f"Bewerte die Antwort als Lehrer (1-5 Punkte) mit Fokus auf:\n"
+            f"1. Erwähnung konkreter Schritte/Meilensteine\n"
+            f"2. Nennung von Zahlen/Daten/Fristen\n"
+            f"3. Entscheidungskriterien\n"
+            f"4. Aktueller Stand des Prozesses\n\n"
             f"Frage: {question}\n"
-            f"Korrekte Antwort: {correct_answer}\n"
-            f"Antwort des Schülers: {user_answer}\n\n"
+            f"Idealantwort: {correct_answer}\n"
+            f"Schülerantwort: {user_answer}\n\n"
             f"Bewertungsregeln:\n"
-            f"- Kurze Antworten mit den wesentlichen Elementen verdienen eine hohe Punktzahl.\n"
-            f"- Wenn die Schlüsselwörter vorhanden sind, sollte die Punktzahl hoch sein (4 oder 5).\n"
-            f"- Die Form der Antwort ist weniger wichtig als der Inhalt.\n\n"
-            f"Gib NUR ein gültiges JSON im folgenden Format zurück: {{\"score\": X}}, wobei X eine Zahl zwischen 0 und 5 ist.\n"
-            f"Verwende doppelte Anführungszeichen für den Schlüssel \"score\"."
+            f"- 5 Punkte: Enthält alle relevanten Prozessschritte + quantitative Angaben\n"
+            f"- 4 Punkte: Nennt Hauptschritte aber wenig Details\n"
+            f"- 3 Punkte: Allgemeine Aussagen ohne konkreten Bezug\n"
+            f"- 2 Punkte: Nur teilweise relevant\n"
+            f"- 1 Punkt: Kein Bezug zur Frage\n\n"
+            f"Gib NUR JSON zurück: {{\"score\": X, \"feedback\": \"kurzes konstruktives Feedback\"}}"
         )
 
         response = client.chat.completions.create(
