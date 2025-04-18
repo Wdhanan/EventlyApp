@@ -1,10 +1,12 @@
 import streamlit as st
 from sqlite3 import Error
 from utils.database import create_connection
-from utils.database import create_tables  # Import am Dateianfang hinzufügen
+from utils.database import create_tables
 
-def ensure_db_tables():
-    """Stellt sicher, dass alle Tabellen existieren"""
+def init_db():
+    """Initialisiert die Datenbank beim ersten Start"""
+    if not os.path.exists("data"):
+        os.makedirs("data")
     if not os.path.exists("data/eventmanager.db"):
         create_tables()
 
@@ -17,7 +19,7 @@ DARK_BG = "#1E1E1E"
 DARK_CARD = "#2D2D2D"
 
 def register():
-    ensure_db_tables()
+    init_db()
     # Professional styling for the form - improved to reduce white space
     st.markdown("""
     <style>
@@ -176,7 +178,7 @@ def register():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def login():
-    ensure_db_tables()
+    init_db()
     # Professional styling for the form - improved to reduce white space
     st.markdown("""
     <style>
