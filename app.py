@@ -63,7 +63,8 @@ NAV_ICONS = {
     "Login": "🔑",
     "Registrierung": "📝",
     "API-Key bearbeiten": "🔧",
-    "Export" : "📤"
+    "Export" : "📤",
+    "API-Key konfigurieren": "🔧"
 }
 
 BACKGROUND_CSS = f"""
