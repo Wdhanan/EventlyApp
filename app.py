@@ -6,6 +6,39 @@ from utils.task_manager import save_task, edit_task, delete_task, load_shared_ta
 from utils.event_question_generator import quiz_mode
 from utils.event_stats_manager import calculate_progress_status, load_stats, display_event_statistics
 import os
+import pandas as pd
+import io
+import base64
+
+
+PAGE_IMAGES = {
+    "Dashboard": "https://img.icons8.com/fluency/96/dashboard-layout.png",
+    "Events": "https://img.icons8.com/fluency/96/calendar.png",
+    "Tasks": "https://img.icons8.com/fluency/96/todo-list.png",
+    "Rätsel": "https://img.icons8.com/fluency/96/quiz.png",
+    "Statistiken": "https://img.icons8.com/fluency/96/graph.png",
+    "Profil": "https://img.icons8.com/fluency/96/user.png",
+    "Einstellungen": "https://img.icons8.com/fluency/96/settings.png",
+    "Über die Anwendung": "https://img.icons8.com/fluency/96/info.png",
+    "Export": "https://img.icons8.com/fluency/96/export.png" 
+}
+
+def display_page_header(title):
+    col1, col2 = st.columns([1, 10])
+    with col1:
+        if title in PAGE_IMAGES:
+            st.image(PAGE_IMAGES[title], width=60)
+    with col2:
+        st.header(f"{NAV_ICONS.get(title, '')} {title}")
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+
+# Create a new function for downloading files
+def create_download_link(df, filename, text):
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64}" download="{filename}" class="download-button">{text}</a>'
+    return href
 
 
 # Design-Konstanten
@@ -29,7 +62,8 @@ NAV_ICONS = {
     "Über die Anwendung": "ℹ️",
     "Login": "🔑",
     "Registrierung": "📝",
-    "API-Key bearbeiten": "🔧"
+    "API-Key bearbeiten": "🔧",
+    "Export" : "📤"
 }
 
 BACKGROUND_CSS = f"""
@@ -51,6 +85,56 @@ BACKGROUND_CSS = f"""
 </style>
 """
 
+LOGIN_CSS = """
+<style>
+/* Text center helper */
+.text-center {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+/* Login/Registration Form Fixes */
+div.block-container {
+    padding-top: 1rem !important;
+    max-width: 500px !important;
+    margin: 0 auto;
+}
+
+.auth-form-container {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Remove all extra padding/spacing */
+.auth-form-container > div {
+    margin-bottom: 1rem !important;
+}
+
+/* Make the form inputs more compact */
+.auth-form-container .stTextInput, 
+.auth-form-container .stButton {
+    margin-bottom: 0.75rem !important;
+}
+
+/* Fix for the header */
+.auth-form-container h1, 
+.auth-form-container h2, 
+.auth-form-container h3 {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Hide the extra white block */
+div[data-testid="stVerticalBlock"] > div:empty {
+    display: none !important;
+}
+</style>
+"""
 
 # --- CSS-STYLE ---
 MAIN_CSS = f"""
@@ -170,16 +254,55 @@ MAIN_CSS = f"""
     margin: 1.5rem 0;
     border: none;
 }}
-div[data-testid="stVerticalBlock"]:has(> div.element-container:empty) {{
-    display: none;
-}}
 
 /* Hide empty white block */
 div[data-testid="stVerticalBlock"]:has(> div.element-container:empty) {{
     display: none;
 }}
+
+/* Fix empty space above forms */
+div.block-container {{
+    padding-top: 1rem !important;
+}}
+
+/* Fix spacing around form elements */
+div.element-container {{
+    margin-bottom: 0 !important;
+}}
+
+/* Make form appear closer to top */
+.auth-form-container {{
+    margin-top: 0 !important;
+}}
 </style>
 """
+
+
+HEADER_FIX_CSS = """
+/* Fix headers */
+<style>
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0.5rem !important;
+    padding-top: 0.5rem !important;
+    line-height: 1.3 !important;
+    overflow: visible !important;
+    white-space: normal !important;
+}
+
+/* Add more space for content */
+[data-testid="stAppViewContainer"] > div:nth-child(1) > div > div > div:nth-child(2) {
+    padding-top: 1.5rem !important;
+}
+</style>
+"""
+
+MAIN_CSS = f"""
+{MAIN_CSS}
+{LOGIN_CSS}
+{HEADER_FIX_CSS}
+"""
+
+
 st.markdown(MAIN_CSS, unsafe_allow_html=True)
 # Zustandsvariablen initialisieren mit Default-Werten
 if "logged_in" not in st.session_state:
@@ -196,6 +319,10 @@ if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 if "main_navigation" not in st.session_state:
     st.session_state.main_navigation = "Dashboard"
+if "show_login" not in st.session_state:
+    st.session_state.show_login = True
+if "show_register" not in st.session_state:
+    st.session_state.show_register = False
 
 st.sidebar.title(f"{NAV_ICONS['Dashboard']} Navigation")
 
@@ -204,7 +331,7 @@ if not st.session_state["api_key_configured"]:
         "Wähle eine Seite",
         ["API-Key konfigurieren"],
         format_func=lambda x: f"{NAV_ICONS[x]} {x}",
-        key="auth_navigation"
+        key="pre_auth_navigation"  
     )
 else:
     if not st.session_state["logged_in"]:
@@ -212,10 +339,22 @@ else:
             "Wähle eine Seite",
             ["Login", "Registrierung", "API-Key bearbeiten"],
             format_func=lambda x: f"{NAV_ICONS[x]} {x}",
-            key="auth_navigation"
+            index=0 if st.session_state.get("show_login", True) else 1,
+            key="auth_navigation_sidebar"  
         )
+        if page == "Login" and not st.session_state.get("show_login", True):
+            st.session_state["show_login"] = True
+            st.session_state["show_register"] = False
+            st.rerun()
+        elif page == "Registrierung" and st.session_state.get("show_login", True):
+            st.session_state["show_login"] = False
+            st.session_state["show_register"] = True
+            st.rerun()
+
+
     else:
-        available_pages = ["Dashboard", "Events", "Tasks", "Rätsel", "Statistiken", "Profil", "Einstellungen", "Über die Anwendung"]
+        available_pages = ["Dashboard", "Events", "Tasks", "Rätsel", "Statistiken", "Profil", "Einstellungen","Export", "Über die Anwendung"]
+        
         
         # Initialisiere main_navigation falls nicht vorhanden oder ungültig
         if "main_navigation" not in st.session_state or st.session_state["main_navigation"] not in available_pages:
@@ -238,12 +377,10 @@ else:
         page = st.session_state["main_navigation"]
             
 
-
 # Hauptinhalt basierend auf der ausgewählten Seite
 if page == "API-Key konfigurieren" or page == "API-Key bearbeiten":
-    st.header("API-Key konfigurieren")
+    display_page_header("API-Key konfigurieren")
     with st.container():
-        st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
         with st.container():
             st.write("""
                 Um den EventManager zu nutzen, benötigst du einen DeepSeek API-Key. 
@@ -265,13 +402,24 @@ if page == "API-Key konfigurieren" or page == "API-Key bearbeiten":
                         st.error("Bitte gib einen gültigen API-Key ein.")
 
 elif not st.session_state["logged_in"]:
-    if page == "Login":
+    st.markdown("""
+    <style>
+    [data-testid="stAppViewContainer"] {
+        background-color: #f5f7fa !important;
+        background-image: none !important; 
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    if st.session_state.get("show_login", True):
         login()
-    elif page == "Registrierung":
+    else:
         register()
+
+
 else:
     if page == "Dashboard":
-        st.header("📊 Dashboard Übersicht")
+        display_page_header("Dashboard")
         
         # Modernes, sauberes CSS
         st.markdown("""
@@ -519,7 +667,7 @@ else:
                 st.markdown('<div class="section-title">🤝 Geteilte Events</div>', unsafe_allow_html=True)
                 
                 # Pagination
-                items_per_page = 6
+                items_per_page = 2  # Show fewer items per page so each has more detail
                 total_pages = (len(shared_events) + items_per_page - 1) // items_per_page
                 page_number = st.number_input('Seite', min_value=1, max_value=total_pages, value=1, key='shared_events_page')
                 start_idx = (page_number - 1) * items_per_page
@@ -532,16 +680,20 @@ else:
                     
                     st.markdown('<div class="event-card shared-event-card">', unsafe_allow_html=True)
                     
-                    # Event Header
+                    # Event Header with sharing info
                     st.markdown('<div class="event-header">', unsafe_allow_html=True)
                     st.markdown(f'<div class="event-name">{title}</div>', unsafe_allow_html=True)
-                    st.markdown(f'<div class="event-shared">Geteilt von {shared_by}</div>', unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
                     
-                    # Beschreibung
-                    st.markdown(f'<div class="event-description">{description or "Keine Beschreibung"}</div>', unsafe_allow_html=True)
+                    # Sharing info with timestamp (you'll need to modify your database to store this)
+                    st.markdown(f'<div style="font-size:0.8rem; color:#666; margin-bottom:0.8rem;">📤 Geteilt von <b>{shared_by}</b></div>', unsafe_allow_html=True)
                     
-                    # Aufgaben (nur geteilte)
+                    # Beschreibung
+                    if description:
+                        with st.expander("Beschreibung anzeigen"):
+                            st.write(description)
+                    
+                    # Aufgaben 
                     tasks = load_tasks(event_id)
                     shared_tasks = load_shared_tasks(st.session_state["user_id"])
                     all_tasks = [t for t in tasks if t[0] in [st[0] for st in shared_tasks]]
@@ -550,41 +702,48 @@ else:
                         st.markdown('<div class="section-label">Aufgaben</div>', unsafe_allow_html=True)
                         st.markdown('<div class="task-list">', unsafe_allow_html=True)
                         for task in all_tasks[:3]:
-                            st.markdown(f'<div class="task-item">{task[1]}</div>', unsafe_allow_html=True)
-                        if len(all_tasks) > 3:
-                            with st.popover(f"+ {len(all_tasks)-3} weitere anzeigen"):
-                                for task in all_tasks[3:]:
-                                    st.markdown(f'<div class="task-item">{task[1]}</div>', unsafe_allow_html=True)
+                            task_id, task_title = task[0], task[1]
+                            with st.expander(f"✓ {task_title}"):
+                                st.write(task[2])  # Task content
+                                
+                                # Add edit button for each task
+                                if st.button(f"✏️ Bearbeiten", key=f"edit_shared_task_{task_id}"):
+                                    st.session_state.update({
+                                        "edit_task_id": task_id,
+                                        "main_navigation": "Tasks"
+                                    })
+                                    st.rerun()
                         st.markdown('</div>', unsafe_allow_html=True)
                     
                     # Fortschritt
                     event_stats = load_stats(st.session_state["user_id"], event_id)
                     if event_stats:
                         last_score = event_stats[0][1]
-                        status, _ = calculate_progress_status(last_score)
+                        status, color = calculate_progress_status(last_score)
                         
                         st.markdown('<div class="progress-container">', unsafe_allow_html=True)
                         st.markdown('<div class="progress-label">Letzte Bewertung</div>', unsafe_allow_html=True)
-                        st.markdown(f'<div class="progress-score">{last_score}%</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="progress-score" style="color:{color}">{last_score}%</div>', unsafe_allow_html=True)
                         st.markdown(f'<div class="progress-label">{status}</div>', unsafe_allow_html=True)
                         st.markdown('</div>', unsafe_allow_html=True)
                     
-                    # Buttons
-                    st.markdown('<div class="action-buttons">', unsafe_allow_html=True)
-                    if st.button("Quiz", key=f"shared_quiz_{event_id}"):
-                        st.session_state.update({
-                            "selected_event_id": event_id,
-                            "selected_event_title": title,
-                            "main_navigation": "Rätsel"
-                        })
-                        st.rerun()
-                    if st.button("Details", key=f"shared_details_{event_id}"):
-                        st.session_state.update({
-                            "selected_event_id": event_id,
-                            "main_navigation": "Events"
-                        })
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    # Action Buttons
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("🧩 Quiz starten", key=f"shared_quiz_{event_id}"):
+                            st.session_state.update({
+                                "selected_event_id": event_id,
+                                "selected_event_title": title,
+                                "main_navigation": "Rätsel"
+                            })
+                            st.rerun()
+                    with col2:
+                        if st.button("📊 Statistik", key=f"shared_stats_{event_id}"):
+                            st.session_state.update({
+                                "selected_event_id": event_id,
+                                "main_navigation": "Statistiken"
+                            })
+                            st.rerun()
                     
                     st.markdown('</div>', unsafe_allow_html=True)  # Ende event-card
                 
@@ -596,7 +755,7 @@ else:
                     st.write(f"Seite {page_number} von {total_pages}")
                     st.markdown('</div>', unsafe_allow_html=True)
                 
-                st.markdown('</div>', unsafe_allow_html=True)  # Ende stats-card
+                st.markdown('</div>', unsafe_allow_html=True) 
                 
                 # Pagination Controls
                 col1, col2, col3 = st.columns([1,2,1])
@@ -606,25 +765,51 @@ else:
                 st.markdown('</div>', unsafe_allow_html=True)
 
     elif page == "Events":
-        st.header("📅 Events")
+        display_page_header("Events")
         with st.container():
-            st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
             st.write("### Erstelle oder bearbeite Events")
             col1, col2 = st.columns([1, 2])
             with col1:
                 st.write("#### Erstellte Events")
                 events = load_events(st.session_state["user_id"])
+                
+                # Event-Auswahl und Bearbeiten/Löschen
                 if events:
                     selected_event = st.selectbox("Wähle ein Event", [event[1] for event in events], key="event_selection")
                     selected_event_id = next(event[0] for event in events if event[1] == selected_event)
+                    
+                    
+                    st.markdown("""
+                    <style>
+                    .event-action-btn {
+                        min-width: 135px !important;
+                        width: 100% !important;
+                        background: #4A90E2 !important;
+                        color: white !important;
+                        border: none !important;
+                    }
+                    </style>
+                    """, unsafe_allow_html=True)
+                    
                     col1_1, col1_2 = st.columns(2)
                     with col1_1:
-                        if st.button("✏️ Bearbeiten", key="edit_event_button"):
+                        if st.button("✏️ Bearbeiten", key="edit_event_button", 
+                                help="Ausgewähltes Event bearbeiten",
+                                use_container_width=True):
                             st.session_state["edit_event_id"] = selected_event_id
-                    with col1_2:
-                        if st.button("🗑️ Löschen", key="delete_event_button"):
-                            delete_event(selected_event_id)
                             st.rerun()
+                    
+                    with col1_2:
+                        if st.button("🗑️ Löschen", key="delete_event_button",
+                                help="Ausgewähltes Event löschen",
+                                use_container_width=True):
+                            delete_event(selected_event_id)
+                            st.success("Event erfolgreich gelöscht!")
+                            # Session State bereinigen
+                            if "edit_event_id" in st.session_state:
+                                del st.session_state["edit_event_id"]
+                            st.rerun()
+
                 shared_events = load_shared_events(st.session_state["user_id"])
                 if shared_events:
                     st.write("### Geteilte Events")
@@ -646,9 +831,11 @@ else:
                     if st.button("Speichern", key="save_event_button"):
                         if "edit_event_id" in st.session_state:
                             edit_event(st.session_state["edit_event_id"], title, description)
+                            st.success("Event erfolgreich bearbeitet!")
                             del st.session_state["edit_event_id"]
                         else:
                             create_event(st.session_state["user_id"], title, description)
+                            st.success("Event erfolgreich erstellt!")
                         st.rerun()
                 with col2_2:
                     if st.button("Abbrechen", key="cancel_event_button"):
@@ -667,10 +854,162 @@ else:
                     if st.button(f"Event {selected_event} teilen", key=f"share_button_{selected_event_id}"):
                         share_event(selected_event_id, st.session_state["user_id"], shared_with_username)
 
+    elif page == "Export":
+        display_page_header("Export")
+        
+        st.markdown("""
+        <style>
+        .export-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .export-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-left: 5px solid #4A90E2;
+        }
+        .export-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        .download-button {
+            display: inline-block; 
+            background-color: #4CAF50;
+            color: white !important;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+        .download-button:hover {
+            background-color: #45a049;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="export-container">', unsafe_allow_html=True)
+        st.markdown('<div class="export-card">', unsafe_allow_html=True)
+        
+        st.markdown("### 📤 Events und Aufgaben exportieren")
+        st.write("Wähle die Events aus, die du exportieren möchtest, und das gewünschte Format.")
+        
+        # Get all events (personal and shared)
+        personal_events = load_events(st.session_state["user_id"]) or []
+        shared_events = load_shared_events(st.session_state["user_id"]) or []
+        
+        all_events = [(e[0], e[1], "Persönlich", e[2]) for e in personal_events]
+        all_events += [(e[0], e[1], f"Geteilt von {e[2]}", e[3]) for e in shared_events]
+        
+        # Let user select which events to export
+        if all_events:
+            event_options = [f"{e[1]} ({e[2]})" for e in all_events]
+            selected_events = st.multiselect(
+                "Wähle Events zum Exportieren", 
+                options=event_options,
+                default=event_options
+            )
+            
+            # Filter events based on selection
+            selected_event_ids = [all_events[event_options.index(e)][0] for e in selected_events]
+            
+            # Export options
+            export_format = st.radio(
+                "Exportformat auswählen",
+                ["CSV", "Excel"],
+                horizontal=True
+            )
+            
+            include_stats = st.checkbox("Statistiken einbeziehen", value=True)
+            include_tasks = st.checkbox("Aufgaben einbeziehen", value=True)
+            
+            if st.button("Export vorbereiten"):
+                if not selected_event_ids:
+                    st.warning("Bitte wähle mindestens ein Event zum Exportieren aus.")
+                else:
+                    # Prepare data for export
+                    export_data = []
+                    
+                    for event_id in selected_event_ids:
+                        # Get event details
+                        event = next((e for e in all_events if e[0] == event_id), None)
+                        if not event:
+                            continue
+                            
+                        event_id, event_title, event_type, event_desc = event
+                        
+                        # Get tasks
+                        tasks = load_tasks(event_id) if include_tasks else []
+                        
+                        # Get stats
+                        stats = load_stats(st.session_state["user_id"], event_id) if include_stats else []
+                        
+                        # Base event data
+                        event_data = {
+                            "Event ID": event_id,
+                            "Titel": event_title,
+                            "Typ": event_type,
+                            "Beschreibung": event_desc
+                        }
+                        
+                        if not tasks:
+                            # Just add the event without tasks
+                            export_data.append(event_data)
+                        else:
+                            # Add each task as a separate row
+                            for task in tasks:
+                                task_id, task_title, task_content = task[0], task[1], task[2]
+                                
+                                task_data = event_data.copy()
+                                task_data.update({
+                                    "Aufgabe ID": task_id,
+                                    "Aufgabe Titel": task_title,
+                                    "Aufgabe Inhalt": task_content
+                                })
+                                
+                                # Add stats if available
+                                if include_stats:
+                                    task_stats = [s for s in stats if s[2] == task_id]
+                                    if task_stats:
+                                        latest_stat = task_stats[-1]
+                                        task_data.update({
+                                            "Letzte Bewertung": latest_stat[1],
+                                            "Datum": latest_stat[3] if len(latest_stat) > 3 else "Unbekannt"
+                                        })
+                                
+                                export_data.append(task_data)
+                    
+                    # Create DataFrame
+                    df = pd.DataFrame(export_data)
+                    
+                    # Create download link
+                    if export_format == "CSV":
+                        filename = "events_export.csv"
+                        st.markdown(create_download_link(df, filename, "📥 CSV-Datei herunterladen"), unsafe_allow_html=True)
+                    else:  # Excel
+                        # For Excel, we need to use BytesIO
+                        output = io.BytesIO()
+                        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                            df.to_excel(writer, sheet_name='Events', index=False)
+                        
+                        b64 = base64.b64encode(output.getvalue()).decode()
+                        href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="events_export.xlsx" class="download-button">📥 Excel-Datei herunterladen</a>'
+                        st.markdown(href, unsafe_allow_html=True)
+        else:
+            st.info("Keine Events zum Exportieren vorhanden. Erstelle zuerst Events oder nehme an geteilten Events teil.")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
     elif page == "Tasks":
-        st.header("📝 Tasks")
+        display_page_header("Tasks")
         with st.container():
-            st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
             st.write("### Erstelle oder bearbeite Tasks")
             events = load_events(st.session_state["user_id"])
             if events:
@@ -726,7 +1065,7 @@ else:
             st.warning("Keine Events gefunden. Bitte erstelle zuerst ein Event.")
 
     elif page == "Statistiken":
-        st.header("Statistiken")
+        display_page_header("Statistiken")
         events = load_events(st.session_state["user_id"])
         if events:
             selected_event = st.selectbox("Wähle ein Event", [event[1] for event in events], key="stats_event_selection")
@@ -736,13 +1075,13 @@ else:
             st.warning("Keine Events gefunden. Bitte erstelle zuerst ein Event.")
 
     elif page == "Profil":
-        st.header("Profil")
+        display_page_header("Profil")
         st.write(f"Eingeloggt als: {st.session_state['username']}")
         if st.button("Ausloggen", key="logout_button"):
             logout()
 
     elif page == "Einstellungen":
-        st.header("Einstellungen")
+        display_page_header("Einstellungen")
         st.write("Konfiguriere die Anwendungseinstellungen.")
 
         dark_mode = st.checkbox(
@@ -759,14 +1098,6 @@ else:
         # Custom CSS für diesen Abschnitt
         st.markdown("""
         <style>
-        .about-card {
-            background-color: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-            border-left: 5px solid #4A90E2;
-        }
         .feature-card {
             background-color: #F8FAFF;
             border-radius: 10px;
@@ -797,7 +1128,7 @@ else:
         """, unsafe_allow_html=True)
         
         with st.container():
-            st.markdown('<div class="about-card">', unsafe_allow_html=True)
+            
             
             st.markdown("""
             <h2 style='color: #4A90E2; border-bottom: 2px solid #4A90E2; padding-bottom: 0.5rem;'>

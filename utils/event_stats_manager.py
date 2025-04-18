@@ -4,6 +4,8 @@ from utils.database import create_connection
 from datetime import datetime
 import streamlit as st
 
+from utils.event_manager import load_tasks
+
 def save_stats(user_id, event_id, score):
     conn = create_connection()
     if conn is not None:
@@ -72,46 +74,65 @@ def calculate_progress_status(score):
 def display_event_statistics(user_id, event_id):
     stats = load_stats(user_id, event_id)
     if stats:
-        st.markdown("### 📊 Event Fortschritt")
+        st.markdown('<h3 style="margin-top:1.5rem;">📊 Die letzten 3 Quiz-Ergebnisse</h3>', unsafe_allow_html=True)
         
-        # Erstelle eine schöne Tabelle mit Fortschrittsdaten
-        col1, col2 = st.columns([1, 3])
+        # Get the last 3 quiz results for each task
+        tasks = load_tasks(event_id)
         
-        with col1:
-            # Durchschnittliche Punktzahl
-            total_score = sum(stat[1] for stat in stats)
-            average_score = total_score / len(stats)
-            status, color = calculate_progress_status(average_score)
+        if not tasks:
+            st.info("Keine Aufgaben für dieses Event gefunden.")
+            return
             
-            st.metric("Durchschnittliche Punktzahl", 
-                     f"{average_score:.1f}%", 
-                     delta=status,
-                     delta_color=color)
-            
-            # Letzte Bewertung
-            last_score = stats[0][1]
-            status, color = calculate_progress_status(last_score)
-            
-            st.metric("Letzte Bewertung", 
-                     f"{last_score}%", 
-                     delta=status,
-                     delta_color=color)
+        # Create a dictionary to store task stats
+        task_stats = {}
         
-        with col2:
-            # Detailtabelle mit allen Versuchen
-            st.markdown("### 📅 Versuchsverlauf")
+        for task in tasks:
+            task_id = task[0]
+            task_title = task[1]
             
-            # Vorbereitung der Daten für die Tabelle
-            table_data = []
-            for stat in stats:
-                status, _ = calculate_progress_status(stat[1])
-                table_data.append({
-                    "Datum": stat[2],
-                    "Punktzahl": f"{stat[1]}%",
-                    "Status": status
-                })
+            # Get stats for this specific task
+            task_specific_stats = [stat for stat in stats if stat[2] == task_id]
+            last_three = task_specific_stats[-3:] if task_specific_stats else []
             
-            # Erstelle eine schöne Tabelle mit Streamlit
-            st.table(table_data)
+            # Store in dictionary
+            task_stats[task_id] = {
+                "title": task_title,
+                "last_three": last_three
+            }
+        
+        # Now display the results in a nice table
+        st.markdown('<table class="stats-table">', unsafe_allow_html=True)
+        st.markdown('<tr><th>Aufgabe</th><th>Neustes Quiz</th><th>Vorletztes Quiz</th><th>Drittletztes Quiz</th><th>Trend</th></tr>', unsafe_allow_html=True)
+        
+        for task_id, data in task_stats.items():
+            title = data["title"]
+            results = data["last_three"]
+            
+            # Format results
+            result_cells = []
+            for i in range(3):
+                if i < len(results):
+                    score = results[-(i+1)][1]  # Get the score, starting from newest
+                    status, color = calculate_progress_status(score)
+                    result_cells.append(f'<td><span style="color:{color}; font-weight:bold;">{score}%</span><br><small>{status}</small></td>')
+                else:
+                    result_cells.append('<td>-</td>')
+            
+            # Calculate trend
+            trend = ""
+            if len(results) >= 2:
+                newest = results[-1][1]
+                previous = results[-2][1]
+                if newest > previous:
+                    trend = '📈 <span style="color:green">+' + f"{newest - previous:.1f}%" + '</span>'
+                elif newest < previous:
+                    trend = '📉 <span style="color:red">' + f"{newest - previous:.1f}%" + '</span>'
+                else:
+                    trend = '📊 <span style="color:gray">±0%</span>'
+            
+            # Output row
+            st.markdown(f'<tr><td>{title}</td>{result_cells[0]}{result_cells[1]}{result_cells[2]}<td>{trend}</td></tr>', unsafe_allow_html=True)
+            
+        st.markdown('</table>', unsafe_allow_html=True)
     else:
-        st.warning("Keine Statistiken für dieses Event gefunden.")
+        st.info("Noch keine Quiz zu diesem Event durchgeführt.")

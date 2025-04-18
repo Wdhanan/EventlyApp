@@ -2,132 +2,140 @@ import streamlit as st
 from sqlite3 import Error
 from utils.database import create_connection
 
-
+# More professional color scheme
 PRIMARY_COLOR = "#4A90E2"
 SECONDARY_COLOR = "#F5F5F5"
 ACCENT_COLOR = "#FFA500"
+TEXT_COLOR = "#333333"
 DARK_BG = "#1E1E1E"
 DARK_CARD = "#2D2D2D"
 
-# Custom CSS für modernes Login/Registrierung
-AUTH_CSS = f"""
-<style>
-.auth-container {{
-    max-width: 400px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-}}
-
-.dark-mode .auth-container {{
-    background: #2D2D2D;
-}}
-
-.auth-title {{
-    color: {PRIMARY_COLOR};
-    text-align: center;
-    margin-bottom: 1.5rem;
-    font-size: 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-}}
-
-.auth-input {{
-    width: 100%;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}}
-
-.dark-mode .auth-input {{
-    background: #3A3A3A;
-    border-color: #555;
-    color: white;
-}}
-
-.auth-input:focus {{
-    border-color: {PRIMARY_COLOR};
-    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-}}
-
-.auth-button {{
-    width: 100%;
-    padding: 0.75rem;
-    background-color: {PRIMARY_COLOR};
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}}
-
-.auth-button:hover {{
-    background-color: #3a7bc8;
-    transform: translateY(-2px);
-}}
-
-.auth-footer {{
-    text-align: center;
-    margin-top: 1.5rem;
-    color: #777;
-    font-size: 0.9rem;
-}}
-
-.dark-mode .auth-footer {{
-    color: #AAA;
-}}
-
-.auth-link {{
-    color: {PRIMARY_COLOR};
-    text-decoration: none;
-    cursor: pointer;
-    font-weight: 500;
-}}
-
-.auth-logo {{
-    text-align: center;
-    margin-bottom: 1.5rem;
-}}
-
-/* Hide empty white block */
-div[data-testid="stVerticalBlock"]:has(> div.element-container:empty) {{
-    display: none;
-}}
-</style>
-"""
-
 def register():
-    st.markdown(AUTH_CSS, unsafe_allow_html=True)
+    # Professional styling for the form - improved to reduce white space
     st.markdown("""
     <style>
-    div[data-testid="stVerticalBlock"]:has(> div.element-container:empty) {
-        display: none;
+    /* Clean up white blocks and force better styling */
+    [data-testid="stVerticalBlock"]:has(> div.element-container:empty) {
+        display: none !important;
+    }
+    
+    /* Form container styling with reduced margins */
+    .auth-form-container {
+        background-color: white;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        max-width: 420px;
+        margin: 10px auto 30px;
+        border-top: 5px solid #4A90E2;
+    }
+    
+    /* Form title with reduced margin */
+    .auth-form-title {
+        color: #333;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    /* Override input styling with reduced spacing */
+    div[data-baseweb="input"] {
+        margin-bottom: 15px !important;
+    }
+    
+    /* Make labels bold and consistent */
+    .stTextInput > label {
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        color: #555 !important;
+        margin-bottom: 3px !important;
+    }
+    
+    /* Style inputs */
+    .stTextInput input {
+        background-color: #f8f9fa !important;
+        border: 1px solid #ddd !important;
+        border-radius: 8px !important;
+        padding: 12px 15px !important;
+        font-size: 15px !important;
+        transition: border-color 0.3s ease !important;
+    }
+    
+    .stTextInput input:focus {
+        border-color: #4A90E2 !important;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1) !important;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background-color: #4A90E2 !important;
+        color: white !important;
+        padding: 12px 20px !important;
+        font-size: 16px !important;
+        font-weight: 500 !important;
+        border-radius: 8px !important;
+        border: none !important;
+        width: 100% !important;
+        transition: all 0.3s ease !important;
+        margin-top: 5px !important;
+    }
+    
+    .stButton > button:hover {
+        background-color: #3a7bc8 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Footer text with reduced margin */
+    .auth-footer {
+        text-align: center;
+        margin-top: 15px;
+        color: #777;
+        font-size: 14px;
+    }
+    
+    /* Override background */
+    [data-testid="stAppViewContainer"] {
+        background-color: #f5f7fa !important;
+        background-image: none !important;
+    }
+    
+    /* Override main content area to reduce empty space */
+    .main .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+        max-width: 100% !important;
+    }
+    
+    /* Fix empty space above forms */
+    .st-emotion-cache-z5fcl4 {
+        padding-top: 0 !important;
+    }
+    
+    /* Hide empty blocks */
+    .element-container:empty {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
     }
     </style>
-    """, unsafe_allow_html=True)                
+    """, unsafe_allow_html=True)
     
     
-    st.markdown(f'<h2 class="auth-title">{("event")} Registrieren</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="auth-form-title">Neues Konto erstellen</h2>', unsafe_allow_html=True)
     
-    with st.form(key='register_form'):
-        username = st.text_input("Benutzername", key="register_username")
-        password = st.text_input("Passwort", type="password", key="register_password")
-        confirm_password = st.text_input("Passwort bestätigen", type="password", key="confirm_password")
+    with st.form("register_form_new"):
+        username = st.text_input("Benutzername", key="reg_username_new")
+        password = st.text_input("Passwort", type="password", key="reg_password_new")
+        confirm_password = st.text_input("Passwort bestätigen", type="password", key="reg_confirm_new")
         
-        if st.form_submit_button(f"{('user-plus')} Konto erstellen", use_container_width=True):
+        submit = st.form_submit_button("Konto erstellen")
+        
+        if submit:
             if not username or not password:
                 st.error("Benutzername und Passwort dürfen nicht leer sein.")
             elif password != confirm_password:
@@ -138,10 +146,12 @@ def register():
                     try:
                         cursor = conn.cursor()
                         cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
-                                        (username, password))
+                                       (username, password))
                         conn.commit()
                         st.success("Registrierung erfolgreich! Bitte melde dich jetzt an.")
                         st.session_state["show_login"] = True
+                        st.session_state["show_register"] = False
+                        st.rerun()
                     except Error as e:
                         if "UNIQUE constraint failed" in str(e):
                             st.error("Benutzername bereits vergeben.")
@@ -150,34 +160,158 @@ def register():
                     finally:
                         conn.close()
     
-    st.markdown('<div class="auth-footer">Bereits registriert? <span class="auth-link" onclick="window.location=\'?nav=Login\'">Zum Login</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="auth-footer">Bereits registriert?</div>', unsafe_allow_html=True)
+    if st.button("Zum Login", key="goto_login_new_btn"):
+        st.session_state["show_login"] = True
+        st.session_state["show_register"] = False
+        st.rerun()
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
 def login():
-    st.markdown(AUTH_CSS, unsafe_allow_html=True)
+    # Professional styling for the form - improved to reduce white space
     st.markdown("""
     <style>
-    div[data-testid="stVerticalBlock"]:has(> div.element-container:empty) {
-        display: none;
+    /* Clean up white blocks and force better styling */
+    [data-testid="stVerticalBlock"]:has(> div.element-container:empty) {
+        display: none !important;
+    }
+    
+    /* Form container styling with reduced margins */
+    .auth-form-container {
+        background-color: white;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        max-width: 420px;
+        margin: 10px auto 30px;
+        border-top: 5px solid #4A90E2;
+    }
+    
+    /* Logo styling with reduced margin */
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    
+    .auth-logo img {
+        width: 70px;
+        height: auto;
+    }
+    
+    /* Form title with reduced margin */
+    .auth-form-title {
+        color: #333;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    /* Override input styling with reduced spacing */
+    div[data-baseweb="input"] {
+        margin-bottom: 15px !important;
+    }
+    
+    /* Make labels bold and consistent */
+    .stTextInput > label {
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        color: #555 !important;
+        margin-bottom: 3px !important;
+    }
+    
+    /* Style inputs */
+    .stTextInput input {
+        background-color: #f8f9fa !important;
+        border: 1px solid #ddd !important;
+        border-radius: 8px !important;
+        padding: 12px 15px !important;
+        font-size: 15px !important;
+        transition: border-color 0.3s ease !important;
+    }
+    
+    .stTextInput input:focus {
+        border-color: #4A90E2 !important;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1) !important;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background-color: #4A90E2 !important;
+        color: white !important;
+        padding: 12px 20px !important;
+        font-size: 16px !important;
+        font-weight: 500 !important;
+        border-radius: 8px !important;
+        border: none !important;
+        width: 100% !important;
+        transition: all 0.3s ease !important;
+        margin-top: 5px !important;
+    }
+    
+    .stButton > button:hover {
+        background-color: #3a7bc8 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Footer text with reduced margin */
+    .auth-footer {
+        text-align: center;
+        margin-top: 15px;
+        color: #777;
+        font-size: 14px;
+    }
+    
+    /* Override background */
+    [data-testid="stAppViewContainer"] {
+        background-color: #f5f7fa !important;
+        background-image: none !important;
+    }
+    
+    /* Override main content area to reduce empty space */
+    .main .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+        max-width: 100% !important;
+    }
+    
+    /* Fix empty space above forms */
+    .st-emotion-cache-z5fcl4 {
+        padding-top: 0 !important;
+    }
+    
+    /* Hide empty blocks */
+    .element-container:empty {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
     }
     </style>
-    """, unsafe_allow_html=True) 
+    """, unsafe_allow_html=True)
     
-
-    st.markdown(f'<h2 class="auth-title">{("login")} Einloggen</h2>', unsafe_allow_html=True)
     
-    with st.form(key='login_form'):
-        username = st.text_input("Benutzername", key="login_username")
-        password = st.text_input("Passwort", type="password", key="login_password")
+    st.markdown('<div class="auth-logo"><img src="https://cdn-icons-png.flaticon.com/512/2476/2476589.png" alt="Logo"></div>', unsafe_allow_html=True)
+    st.markdown('<h2 class="auth-form-title">Willkommen zurück</h2>', unsafe_allow_html=True)
+    
+    with st.form("login_form_new"):
+        username = st.text_input("Benutzername", key="login_username_new")
+        password = st.text_input("Passwort", type="password", key="login_password_new")
         
-        if st.form_submit_button(f"{('sign-in')} Einloggen", use_container_width=True):
+        submit = st.form_submit_button("Einloggen")
+        
+        if submit:
             if username and password:
                 conn = create_connection()
                 if conn is not None:
                     try:
                         cursor = conn.cursor()
                         cursor.execute("SELECT id FROM users WHERE username = ? AND password = ?", 
-                                        (username, password))
+                                       (username, password))
                         user = cursor.fetchone()
                         if user:
                             st.session_state["logged_in"] = True
@@ -194,7 +328,12 @@ def login():
             else:
                 st.error("Benutzername und Passwort dürfen nicht leer sein.")
     
-    st.markdown('<div class="auth-footer">Noch kein Konto? <span class="auth-link" onclick="window.location=\'?nav=Registrierung\'">Registrieren</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="auth-footer">Noch kein Konto?</div>', unsafe_allow_html=True)
+    if st.button("Registrieren", key="goto_register_new_btn"):
+        st.session_state["show_login"] = False
+        st.session_state["show_register"] = True
+        st.rerun()
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
 def logout():
