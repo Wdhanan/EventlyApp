@@ -9,6 +9,10 @@ import os
 import pandas as pd
 import io
 import base64
+from utils.database import create_tables
+
+
+create_tables()
 
 
 if not os.path.exists("data"):
