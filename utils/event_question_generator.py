@@ -16,10 +16,14 @@ load_dotenv()
 
 # Configuration API
 api_key = os.getenv("DEEPSEEK_API_KEY")
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=api_key,
-)
+try:
+    client = OpenAI(
+        api_key=api_key or os.getenv("DEEPSEEK_API_KEY"),
+        base_url=os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
+    )
+except Exception as e:
+    st.error(f"Fehler bei der Initialisierung des API-Clients: {str(e)}")
+    client = None
 
 # Verzeichnis für Fragen
 QUESTIONS_DIR = "data/questions"
