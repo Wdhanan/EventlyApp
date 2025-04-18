@@ -11,7 +11,6 @@ DARK_BG = "#1E1E1E"
 DARK_CARD = "#2D2D2D"
 
 def register():
-    init_db()
     # Professional styling for the form - improved to reduce white space
     st.markdown("""
     <style>
@@ -170,7 +169,6 @@ def register():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def login():
-    init_db()
     # Professional styling for the form - improved to reduce white space
     st.markdown("""
     <style>
