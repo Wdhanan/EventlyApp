@@ -140,3 +140,4 @@ def delete_task(task_id):
             st.error(f"Fehler beim Löschen der Aufgabe: {e}")
         finally:
             conn.close()
+            
