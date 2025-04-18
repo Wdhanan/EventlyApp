@@ -136,3 +136,4 @@ def display_event_statistics(user_id, event_id):
         st.markdown('</table>', unsafe_allow_html=True)
     else:
         st.info("Noch keine Quiz zu diesem Event durchgeführt.")
+        
