@@ -1,14 +1,6 @@
 import streamlit as st
 from sqlite3 import Error
 from utils.database import create_connection
-from utils.database import create_tables
-
-def init_db():
-    """Initialisiert die Datenbank beim ersten Start"""
-    if not os.path.exists("data"):
-        os.makedirs("data")
-    if not os.path.exists("data/eventmanager.db"):
-        create_tables()
 
 # More professional color scheme
 PRIMARY_COLOR = "#4A90E2"
