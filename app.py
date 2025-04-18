@@ -12,7 +12,16 @@ import base64
 from utils.database import create_tables
 
 
-create_tables()
+# database initialization
+if not os.path.exists("data"):
+    os.makedirs("data")
+
+# creation of tables
+try:
+    create_tables()
+    st.toast("database successfully initialized", icon="✅")
+except Exception as e:
+    st.error(f"error while initializing the database: {e}")
 
 PAGE_IMAGES = {
     "Dashboard": "https://img.icons8.com/fluency/96/dashboard-layout.png",
