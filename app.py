@@ -9,6 +9,12 @@ import os
 import pandas as pd
 import io
 import base64
+from utils.database import create_tables 
+
+# automatic table creation
+if not os.path.exists("data/eventmanager.db"):
+    create_tables()
+    st.toast("Datenbank erfolgreich initialisiert", icon="✅")
 
 
 PAGE_IMAGES = {
