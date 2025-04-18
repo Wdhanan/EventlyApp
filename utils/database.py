@@ -3,6 +3,8 @@ from sqlite3 import Error
 
 def create_connection():
     """Erstelle eine Verbindung zur SQLite-Datenbank."""
+    if not os.path.exists("data"):
+        os.makedirs("data")
     conn = None
     try:
         conn = sqlite3.connect("data/eventmanager.db")  
