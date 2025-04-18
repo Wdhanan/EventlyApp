@@ -19,7 +19,6 @@ if not os.path.exists("data"):
 # creation of tables
 try:
     create_tables()
-    st.toast("database successfully initialized", icon="✅")
 except Exception as e:
     st.error(f"error while initializing the database: {e}")
 
