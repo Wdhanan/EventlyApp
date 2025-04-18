@@ -14,11 +14,6 @@ from utils.database import create_tables
 
 create_tables()
 
-
-if not os.path.exists("data"):
-    os.makedirs("data")
-
-
 PAGE_IMAGES = {
     "Dashboard": "https://img.icons8.com/fluency/96/dashboard-layout.png",
     "Events": "https://img.icons8.com/fluency/96/calendar.png",
