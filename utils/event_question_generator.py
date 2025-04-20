@@ -15,15 +15,29 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 load_dotenv()
 
 # Configuration API
-api_key = os.getenv("DEEPSEEK_API_KEY")
-try:
-    client = OpenAI(
-        api_key=api_key or os.getenv("DEEPSEEK_API_KEY"),
-        base_url=os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
-    )
-except Exception as e:
-    st.error(f"Fehler bei der Initialisierung des API-Clients: {str(e)}")
-    client = None
+def get_openai_client():
+    """Initialisiert den OpenAI-Client mit Fehlerbehandlung"""
+    try:
+        # 1. Prüfe Streamlit Secrets
+        api_key = st.secrets.get("DEEPSEEK_API_KEY", os.getenv("DEEPSEEK_API_KEY"))
+        
+        # 2. Fallback zu manueller Eingabe im Session State
+        if not api_key and "deepseek_api_key" in st.session_state:
+            api_key = st.session_state.deepseek_api_key
+            
+        if not api_key:
+            st.error("API-Key nicht gefunden. Bitte konfigurieren Sie den Key zuerst.")
+            return None
+            
+        return OpenAI(
+            api_key=api_key,
+            base_url=os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
+        )
+    except Exception as e:
+        st.error(f"Fehler bei Client-Initialisierung: {str(e)}")
+        return None
+
+client = get_openai_client()
 
 # Verzeichnis für Fragen
 QUESTIONS_DIR = "data/questions"
