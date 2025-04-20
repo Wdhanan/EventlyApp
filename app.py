@@ -1077,12 +1077,27 @@ else:
             st.warning("Keine Events gefunden. Bitte erstelle zuerst ein Event.")
 
     elif page == "Statistiken":
-        display_page_header("Statistiken")
+        display_page_header("Lernfortschritt & Statistiken")
         events = load_events(st.session_state["user_id"])
+        
         if events:
-            selected_event = st.selectbox("Wähle ein Event", [event[1] for event in events], key="stats_event_selection")
-            selected_event_id = next(event[0] for event in events if event[1] == selected_event)
-            display_event_statistics(st.session_state["user_id"], selected_event_id)
+            # Auswahl zwischen Gesamtübersicht und spezifischem Event
+            view_option = st.radio(
+                "Ansicht wählen",
+                ["Gesamtübersicht", "Spezifisches Event"],
+                horizontal=True
+            )
+            
+            if view_option == "Spezifisches Event":
+                selected_event = st.selectbox(
+                    "Event auswählen",
+                    [event[1] for event in events],
+                    key="stats_event_selection"
+                )
+                selected_event_id = next(event[0] for event in events if event[1] == selected_event)
+                display_event_statistics(st.session_state["user_id"], selected_event_id)
+            else:
+                display_event_statistics(st.session_state["user_id"])
         else:
             st.warning("Keine Events gefunden. Bitte erstelle zuerst ein Event.")
 
