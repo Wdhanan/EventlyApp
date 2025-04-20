@@ -258,8 +258,10 @@ def quiz_mode(user_id, event_id):
 
                     st.write(f"**Gesamtpunktzahl:** {total_score}/{max_score}")
 
+                    selected_task_full = next(task for task in all_tasks if task[1] == selected_task)
+                    task_id = selected_task_full[0]
                     # Speichere die Statistik, wenn alle Fragen beantwortet wurden
-                    save_stats(user_id, event_id, total_score)
+                    save_stats(user_id, event_id, task_id, total_score)
                     st.success("Quiz abgeschlossen! Deine Statistik wurde gespeichert.")
                     st.session_state["quiz_finished"] = True  # Markiere das Quiz als abgeschlossen
 
