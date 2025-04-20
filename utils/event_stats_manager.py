@@ -79,7 +79,7 @@ def generate_event_tips(score, event_title):
     if score < 50:
         tips.append(f"📌 **Grundlagen vertiefen**: Wiederhole die Kernkonzepte des Events '{event_title}'.")
         tips.append(f"🔍 **Details beachten**: Achte auf spezifische Anforderungen im Event '{event_title}'.")
-        tips.append(f"🔄 **Praxis üben**: Versuche das Event erneut mit Fokus auf die Problembereiche.")
+        tips.append(f"🔄 **Praxis üben**: Versuche den Rätsel erneut mit Fokus auf die Problembereiche.")
     elif score < 65:
         tips.append(f"🎯 **Schwerpunkte setzen**: Identifiziere die wichtigsten Aspekte von '{event_title}'.")
         tips.append(f"📝 **Zusammenfassungen erstellen**: Fasse die Schlüsselinformationen des Events zusammen.")
@@ -130,7 +130,7 @@ def display_pagination(total_items, items_per_page, page_key):
     return (page - 1) * items_per_page
 
 def display_event_statistics(user_id, event_id=None):
-    st.header("📊 Lernfortschritt & Statistiken")
+    st.header("📊 Fortschritt & Statistiken")
     
     # CSS für die Bewertungs-Badges
     st.markdown("""
