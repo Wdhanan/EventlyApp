@@ -1,10 +1,12 @@
 import sqlite3
 from sqlite3 import Error
+import os
 
 def create_connection():
     """Erstelle eine Verbindung zur SQLite-Datenbank."""
     conn = None
     try:
+        os.makedirs("data", exist_ok=True)
         conn = sqlite3.connect("data/eventmanager.db")  
         return conn
     except Error as e:
