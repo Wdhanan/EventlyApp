@@ -22,11 +22,29 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 load_dotenv()
 
 # Configuration API
-api_key = os.getenv("DEEPSEEK_API_KEY")
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=api_key,
-)
+def get_openai_client():
+    """Initialisiert den OpenAI-Client mit Fehlerbehandlung"""
+    try:
+        # 1. Prüfe Streamlit Secrets
+        api_key = st.secrets.get("DEEPSEEK_API_KEY", os.getenv("DEEPSEEK_API_KEY"))
+        
+        # 2. Fallback zu manueller Eingabe im Session State
+        if not api_key and "deepseek_api_key" in st.session_state:
+            api_key = st.session_state.deepseek_api_key
+            
+        if not api_key:
+            st.error("API-Key nicht gefunden. Bitte konfigurieren Sie den Key zuerst.")
+            return None
+            
+        return OpenAI(
+            api_key=api_key,
+            base_url=os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
+        )
+    except Exception as e:
+        st.error(f"Fehler bei Client-Initialisierung: {str(e)}")
+        return None
+
+client = get_openai_client()
 
 # Verzeichnis für Fragen
 QUESTIONS_DIR = "data/questions"
@@ -528,6 +546,7 @@ def build_detailed_context(event_id=None, task_id=None, user_id=None):
                     'created_at': event[5] if len(event) > 5 else None
                 }
                 
+<<<<<<< HEAD
                 # Alle Tasks des Events für besseren Kontext
                 all_event_tasks = get_tasks_by_event_id(event_id)
                 context['related_tasks'] = [
@@ -771,3 +790,41 @@ def build_prompt(user_message, event_id=None, task_id=None):
         f"Bitte gib eine hilfreiche, prägnante Antwort, die auf das Event/den Task eingeht."
     )
     return prompt
+=======
+                # Wenn der Benutzer eine Antwort eingibt, speichere sie im session_state
+                if user_answer:
+                    st.session_state[answer_key] = user_answer  # Speichere die Antwort
+                else:
+                    all_answered = False  # Nicht alle Fragen wurden beantwortet
+
+            # "Quiz abschließen"-Button anzeigen, wenn alle Fragen beantwortet wurden
+            if all_answered:
+                if st.button("Quiz abschließen", key="finish_quiz_button"):
+                    total_score = 0  # Gesamtpunktzahl für diese Quiz-Session
+                    max_score = len(questions) * 5  # Maximale Punktzahl basierend auf der Anzahl der Fragen
+
+                    for i, question in enumerate(questions, start=1):
+                        answer_key = f"user_answer_{i}"
+                        user_answer = st.session_state[answer_key]
+                        evaluation = evaluate_answer(question['frage'], user_answer, question['antwort'])
+                        st.write(f"**Frage {i}:** {question['frage']}")
+                        st.write(f"Deine Antwort: {user_answer}")
+                        st.write(f"Bewertung: {evaluation['score']}/5")
+                        total_score += evaluation["score"]  # Addiere die Punktzahl zur Gesamtpunktzahl
+
+                    st.write(f"**Gesamtpunktzahl:** {total_score}/{max_score}")
+
+                    selected_task_full = next(task for task in all_tasks if task[1] == selected_task)
+                    task_id = selected_task_full[0]
+                    # Speichere die Statistik, wenn alle Fragen beantwortet wurden
+                    save_stats(user_id, event_id, task_id, total_score)
+                    st.success("Quiz abgeschlossen! Deine Statistik wurde gespeichert.")
+                    st.session_state["quiz_finished"] = True  # Markiere das Quiz als abgeschlossen
+
+                    # Leere die Antwortfelder nach dem Abschluss des Quiz
+                    for i in range(1, len(questions) + 1):
+                        answer_key = f"user_answer_{i}"
+                        st.session_state[answer_key] = ""
+    else:
+        st.warning("Keine Aufgaben gefunden. Bitte erstelle zuerst eine Aufgabe.")
+>>>>>>> b6e1ea0f4313903e1659d9e4c9b406ec103080b6

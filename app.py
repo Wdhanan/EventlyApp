@@ -13,6 +13,7 @@ import os
 import pandas as pd
 import io
 import base64
+<<<<<<< HEAD
 from utils.database import create_connection, create_tables
 from streamlit_cookies_manager import EncryptedCookieManager
 
@@ -380,6 +381,11 @@ st.markdown(f"""
 
 
 
+=======
+from utils.database import create_tables
+
+
+>>>>>>> b6e1ea0f4313903e1659d9e4c9b406ec103080b6
 # database initialization
 if not os.path.exists("data"):
     os.makedirs("data")
@@ -488,7 +494,11 @@ NAV_ICONS = {
     "Registrierung": "📝",
     "API-Key bearbeiten": "🔧",
     "Export" : "📤",
+<<<<<<< HEAD
     "Chat": "💬"
+=======
+    "API-Key konfigurieren": "🔧"
+>>>>>>> b6e1ea0f4313903e1659d9e4c9b406ec103080b6
 }
 
 BACKGROUND_CSS = f"""
@@ -2359,6 +2369,7 @@ else:
             """, unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
+<<<<<<< HEAD
 
 
 # Sichtbarer, großer Footer mit Icons
@@ -2418,3 +2429,5 @@ st.markdown("""
     </a> 
 </div> 
 """, unsafe_allow_html=True)
+=======
+>>>>>>> b6e1ea0f4313903e1659d9e4c9b406ec103080b6
