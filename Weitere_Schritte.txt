@@ -1,0 +1,2 @@
+-UI verbessern
+- Weitere KI hinzufügen z.B: Openai, dass man mehrere(KIs) vergleichen kann, ect
