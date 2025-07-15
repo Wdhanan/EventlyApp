@@ -28,6 +28,7 @@ def create_event(user_id, title, description):
     else:
         st.error("Der Titel des Events darf nicht leer sein.")
 
+
 def edit_event(event_id, new_title, new_description):
     """
     Bearbeitet ein vorhandenes Event.
@@ -132,23 +133,69 @@ def delete_task(task_id):
             conn.close()
 
 def load_events(user_id):
-    """
-    Lädt alle Events eines Benutzers aus der Datenbank.
-    :param user_id: Die ID des Benutzers
-    :return: Liste der Events
-    """
+    """Lade alle Events eines Benutzers einschließlich is_imported Status."""
     conn = create_connection()
-    if conn is not None:
+    events = []
+    if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, title, description FROM events WHERE user_id = ?", (user_id,))
-            events = cursor.fetchall()
-            return events
+            # WICHTIG: is_imported Spalte mit SELECT abfragen
+            cursor.execute("""
+                SELECT id, title, description, is_imported 
+                FROM events 
+                WHERE user_id = ? 
+                ORDER BY created_at DESC
+            """, (user_id,))
+            
+            rows = cursor.fetchall()
+            for row in rows:
+                # Tupel mit 4 Elementen: (id, title, description, is_imported)
+                events.append(row)
+                
         except Error as e:
-            st.error(f"Fehler beim Laden der Events: {e}")
+            print(f"Fehler beim Laden der Events: {e}")
         finally:
             conn.close()
-    return []
+    return events
+
+def load_events_with_import_status(user_id, include_imported=True):
+    """
+    Alternative Funktion - lädt Events optional mit/ohne importierte Events
+    """
+    conn = create_connection()
+    events = []
+    if conn:
+        try:
+            cursor = conn.cursor()
+            
+            if include_imported:
+                # Alle Events laden
+                query = """
+                    SELECT id, title, description, is_imported 
+                    FROM events 
+                    WHERE user_id = ? 
+                    ORDER BY created_at DESC
+                """
+                cursor.execute(query, (user_id,))
+            else:
+                # Nur nicht-importierte Events laden
+                query = """
+                    SELECT id, title, description, is_imported 
+                    FROM events 
+                    WHERE user_id = ? AND (is_imported IS NULL OR is_imported = 0)
+                    ORDER BY created_at DESC
+                """
+                cursor.execute(query, (user_id,))
+            
+            rows = cursor.fetchall()
+            for row in rows:
+                events.append(row)
+                
+        except Error as e:
+            print(f"Fehler beim Laden der Events: {e}")
+        finally:
+            conn.close()
+    return events
 
 def load_tasks(event_id):
     """

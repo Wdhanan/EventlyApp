@@ -1,6 +1,8 @@
+import datetime
 import streamlit as st
 from sqlite3 import Error
 from utils.database import create_connection
+
 
 # More professional color scheme
 PRIMARY_COLOR = "#4A90E2"
@@ -168,7 +170,7 @@ def register():
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-def login():
+def login(cookies):
     # Professional styling for the form - improved to reduce white space
     st.markdown("""
     <style>
@@ -296,7 +298,7 @@ def login():
     
     
     st.markdown('<div class="auth-logo"><img src="https://cdn-icons-png.flaticon.com/512/2476/2476589.png" alt="Logo"></div>', unsafe_allow_html=True)
-    st.markdown('<h2 class="auth-form-title">Willkommen zurück</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="auth-form-title">Willkommen bei Event Planer!</h2>', unsafe_allow_html=True)
     
     with st.form("login_form_new"):
         username = st.text_input("Benutzername", key="login_username_new")
@@ -310,15 +312,24 @@ def login():
                 if conn is not None:
                     try:
                         cursor = conn.cursor()
-                        cursor.execute("SELECT id FROM users WHERE username = ? AND password = ?", 
-                                       (username, password))
+                        cursor.execute("SELECT id, is_premium FROM users WHERE username = ? AND password = ?", 
+                        (username, password))
                         user = cursor.fetchone()
+
                         if user:
-                            st.session_state["logged_in"] = True
-                            st.session_state["user_id"] = user[0]
-                            st.session_state["username"] = username
-                            st.success("Erfolgreich eingeloggt!")
+                            user_id, is_premium = user
+                            cookies["logged_in"] = "true"
+                            cookies["user_id"] = str(user_id)
+                            cookies["username"] = username
+                            cookies["is_premium"] = str(is_premium)
+                            cookies.save()
+
+                            st.session_state.logged_in = True
+                            st.session_state.user_id = str(user_id)
+                            st.session_state.username = username
+                            st.session_state.is_premium = bool(is_premium)
                             st.rerun()
+
                         else:
                             st.error("Ungültige Anmeldedaten.")
                     except Error as e:
@@ -338,11 +349,39 @@ def login():
 
 def logout():
     if "logged_in" in st.session_state:
-        st.session_state["logged_in"] = False
-        st.session_state["user_id"] = None
-        st.session_state["username"] = None
+        cookies = st.session_state.get("cookies")
+        if cookies:
+            cookies["logged_in"] = "false"
+            cookies["user_id"] = ""
+            cookies["username"] = ""
+            cookies.save()
+        st.session_state.logged_in = False  # <- wichtig!
+        st.session_state.user_id = None
+        st.session_state.username = None
+        st.session_state.show_login = True
+        st.session_state.show_register = False
         st.rerun()
         st.success("Erfolgreich ausgeloggt.")
+    
+
+def update_profile(user_id, new_username=None, new_password=None):
+    conn = create_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            if new_username:
+                cursor.execute("UPDATE users SET username = ? WHERE id = ?", 
+                             (new_username, user_id))
+            if new_password:
+                cursor.execute("UPDATE users SET password = ? WHERE id = ?",
+                             (new_password, user_id))
+            conn.commit()
+            return True
+        except Error as e:
+            st.error(f"Profilupdate fehlgeschlagen: {e}")
+            return False
+        finally:
+            conn.close()        
 
 def load_all_users():
     conn = create_connection()
@@ -357,3 +396,72 @@ def load_all_users():
         finally:
             conn.close()
     return []
+
+
+def get_user_premium_status_and_quiz_limits(user_id):
+    """
+    Ruft den Premium-Status, den täglichen Quiz-Zähler und das letzte Reset-Datum eines Benutzers ab.
+    """
+    conn = create_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT is_premium, daily_quiz_count, last_quiz_reset FROM users WHERE id = ?",
+                (user_id,)
+            )
+            result = cursor.fetchone()
+            if result:
+                is_premium, daily_quiz_count, last_quiz_reset = result
+                return is_premium == 1, daily_quiz_count, last_quiz_reset
+        except Error as e:
+            st.error(f"Fehler beim Abrufen des Benutzerstatus: {e}")
+        finally:
+            conn.close()
+    return False, 0, None
+
+def update_user_quiz_count(user_id):
+    """
+    Aktualisiert den täglichen Quiz-Zähler eines Benutzers und setzt ihn gegebenenfalls zurück.
+    """
+    conn = create_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            # Aktuellen Status abrufen
+            cursor.execute(
+                "SELECT daily_quiz_count, last_quiz_reset, is_premium FROM users WHERE id = ?",
+                (user_id,)
+            )
+            current_count, last_reset_str, is_premium = cursor.fetchone()
+
+            today = datetime.now().date()
+            last_reset_date = None
+            if last_reset_str:
+                try:
+                    last_reset_date = datetime.fromisoformat(last_reset_str).date()
+                except ValueError:
+                    # Falls das Format nicht stimmt, setzen wir es zurück
+                    last_reset_date = None 
+
+            # Wenn der letzte Reset nicht heute war oder gar nicht gesetzt ist, oder wenn der Benutzer Premium ist,
+            # aber der Zähler noch nicht zurückgesetzt wurde (z.B. nach Upgrade)
+            if not last_reset_date or last_reset_date < today:
+                new_count = 1
+                new_reset_date_str = today.isoformat()
+            else:
+                new_count = current_count + 1
+                new_reset_date_str = last_reset_str # Bleibt gleich
+
+            cursor.execute(
+                "UPDATE users SET daily_quiz_count = ?, last_quiz_reset = ? WHERE id = ?",
+                (new_count, new_reset_date_str, user_id)
+            )
+            conn.commit()
+            return new_count, True
+        except Error as e:
+            st.error(f"Fehler beim Aktualisieren des Quiz-Zählers: {e}")
+            return None, False
+        finally:
+            conn.close()
+    return None, False
