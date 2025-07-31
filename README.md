@@ -22,8 +22,9 @@ Ein intelligentes, KI-gestütztes Event- und Aufgabenmanagement-Tool mit Quizfun
 14. [KI-Integration](#ki-integration)
 15. [MVP: Umsetzung & Screenshots](#mvp-umsetzung--screenshots)
 16. [Zukünftige Erweiterungen](#zukünftige-erweiterungen)
-17. [Unit Testing](#-unit-testing--testabdeckung)
-18. [FAQ & Troubleshooting](#faq--troubleshooting) 
+17. [Deployment](#deployment)
+18. [Unit Testing](#-unit-testing--testabdeckung)
+19. [FAQ & Troubleshooting](#faq--troubleshooting) 
 
 ---
 
@@ -598,6 +599,83 @@ Wenn ein*e Nutzer*in den Quiz-Modus aktiviert, wird folgende Logik ausgelöst:
 
 ![Statistikansicht](./utils/Statistikansicht_Screenshot.jpg)
 
+---
+
+# 🧪 Grafische Übersicht des Deployments
+
+Hier ist ein schematisches Diagramm, wie dein Deployment mit GitHub Actions und Docker abläuft:
+
+## 🚀 Deployment der Anwendung
+![Deployment](./Deployment.png)
+
+Unsere Anwendung besteht aus einer Streamlit-Weboberfläche sowie zwei FastAPI-Services,
+die zusammen in einem Docker-Container bereitgestellt werden. Das Deployment erfolgt automatisiert über GitHub Actions.
+
+### 1. Architektur der Anwendung
+
+- **Streamlit** (Frontend) läuft auf Port 8501
+
+- **FastAPI-Service** 1 (Chat API) läuft auf Port 8000
+
+- **FastAPI-Service** 2 (Import API) läuft auf Port 8001
+
+Die Services werden in einem einzigen Container ausgeführt, der über folgendes CMD im Dockerfile gestartet wird:
+
+CMD ["sh", "-c", "streamlit run app.py & uvicorn utils.chat_api:app --host 0.0.0.0 --port 8000 & uvicorn utils.import_d
+
+### 2. Automatisiertes Deployment mit GitHub Actions
+Sobald ein Commit auf den main-Branch gepusht wird, startet GitHub Actions unseren CI/CD Workflow
+(.github/workflows/docker-image.yml):
+
+Checkout des Codes
+- **Holt das Repository in die Pipeline.**
+
+Docker Buildx Setup
+- **Ermöglicht plattformunabhängiges Docker-Building.**
+
+Login bei Docker Hub
+- **Nutzt DOCKER_HUB_USERNAME und DOCKER_HUB_TOKEN aus den Repository Secrets.**
+
+Docker Image Build & Push
+- **Baut das Image und pusht es zu Docker Hub**
+    - **username/eventmanager:latest**
+    - **username/eventmanager:<commit-sha>**
+
+### 3. Start der Anwendung auf dem Server
+Auf einem beliebigen Server (z. B. AWS, Azure, Hetzner) kann die Anwendung dann einfach durch Docker Pull & Run gestartet werden:
+
+# Neueste Version vom Docker Hub laden
+docker pull <dockerhub-username>/eventmanager:latest
+
+# Container starten
+docker run -d -p 8501:8501 -p 8000:8000 -p 8001:8001 <dockerhub-username>/eventmanager:latest
+Danach sind die Services erreichbar unter:
+
+Streamlit: http://<server-ip>:8501
+
+Chat API: http://<server-ip>:8000
+
+Import API: http://<server-ip>:8001
+
+4. Vorteile dieses Deployments
+✅ Vollständig automatisiertes Bauen und Pushen des Docker-Images
+✅ Einheitlicher Container für Frontend (Streamlit) und Backend (FastAPI)
+✅ Schnelle Bereitstellung auf jedem Server mit Docker-Unterstützung
+
+## 🧪 Live-Test-Demo
+
+Für Entwickler:innen steht ein interaktiver Testmodus zur Verfügung:
+
+bash
+python -m pytest tests/ -v --pdb
+
+Features:
+
+-**🔍 Debugging bei Fehlschlägen (--pdb)**
+
+-**⏱️ Performance-Messung (--durations=10)**
+
+-**🧩 Markierte Tests (@pytest.mark.integration)**
 
 ---
 
