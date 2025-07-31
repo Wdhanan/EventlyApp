@@ -1,0 +1,22 @@
+[
+    {
+        "frage": "Wie viele Personen wurden bereits eingeladen und wie viele haben zugesagt?",
+        "antwort": "50 Personen wurden eingeladen, davon haben 30 zugesagt."
+    },
+    {
+        "frage": "Wie viele Namen stehen aktuell auf der Teilnehmerliste und wie viele davon sind bestätigt?",
+        "antwort": "Es stehen 60 Namen auf der Liste, davon sind 40 bestätigt."
+    },
+    {
+        "frage": "Wie wurde die maximale Anzahl der Gäste festgelegt und wie viele dürfen insgesamt teilnehmen?",
+        "antwort": "Die maximale Anzahl wurde aufgrund der Raumkapazität auf 100 festgelegt."
+    },
+    {
+        "frage": "Welche Methode wurde für die Versendung der Einladungen genutzt und wie viele wurden bereits verschickt?",
+        "antwort": "Die Einladungen wurden per E-Mail verschickt, davon wurden bereits 80 versendet."
+    },
+    {
+        "frage": "Gibt es eine Deadline für die Bestätigung der Teilnahme und wie viele Personen haben bis zu diesem Zeitpunkt geantwortet?",
+        "antwort": "Die Deadline für die Bestätigung ist der 10. Oktober, bis jetzt haben 25 Personen geantwortet."
+    }
+]

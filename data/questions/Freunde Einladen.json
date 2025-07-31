@@ -1,0 +1,22 @@
+[
+    {
+        "frage": "Wie viele Einladungen wurden bereits verschickt und wie viele davon haben bereits zugesagt?",
+        "antwort": "Es wurden 50 Einladungen verschickt, davon haben 20 zugesagt."
+    },
+    {
+        "frage": "Wie viele Personen umfasst die aktuelle Teilnehmerliste und wie viele davon sind bestätigte Gäste?",
+        "antwort": "Die Teilnehmerliste umfasst 80 Personen, davon sind 40 bestätigte Gäste."
+    },
+    {
+        "frage": "Welche maximale Anzahl an Gästen wurde festgelegt und wie viele Plätze sind noch verfügbar?",
+        "antwort": "Die maximale Anzahl beträgt 100 Gäste, es sind noch 60 Plätze verfügbar."
+    },
+    {
+        "frage": "Welche Kriterien wurden für die Erstellung der Teilnehmerliste angewendet (z.B. Priorisierung bestimmter Gruppen)?",
+        "antwort": "Die Teilnehmerliste wurde nach Priorität von Familie, engen Freunden und Kollegen erstellt."
+    },
+    {
+        "frage": "Gibt es bereits eine Deadline für die Rückmeldungen und wie viele stehen noch aus?",
+        "antwort": "Die Deadline ist der 30. November, es stehen noch 30 Rückmeldungen aus."
+    }
+]

@@ -1,0 +1,22 @@
+[
+    {
+        "frage": "Wie viele Angebote für Partyräume haben Sie bisher eingeholt und wie viele davon sind vollständig mit Preisen und Kapazitäten?",
+        "antwort": "Wir haben 8 Angebote eingeholt, davon sind 5 vollständig mit Preisen und Gäste-Kapazitäten."
+    },
+    {
+        "frage": "Nach welchen konkreten Kriterien (z.B. Preis pro Person, Mindestgästezahl, Lage) haben Sie die Angebote verglichen?",
+        "antwort": "Verglichen wurde primär nach Preis pro Person (max. 25€), Mindestgästezahl (mind. 50 Personen) und Erreichbarkeit (max. 30 Minuten Fahrtzeit)."
+    },
+    {
+        "frage": "Wie viele der angefragten Locations passen aktuell in das Budget und die erwartete Gästezahl von 50 Personen?",
+        "antwort": "3 der 5 vollständigen Angebote liegen im Budgetrahmen und bieten Platz für mindestens 50 Gäste."
+    },
+    {
+        "frage": "Welche nächsten Schritte sind geplant, um die Auswahl auf eine finale Location einzugrenzen?",
+        "antwort": "Als nächstes werden die 3 passenden Locations besichtigt und die Verfügbarkeit am Wunschdatum geprüft."
+    },
+    {
+        "frage": "Bis wann muss die finale Buchung erfolgen, um den gewünschten Termin zu sichern?",
+        "antwort": "Laut Angeboten muss die Buchung spätestens in 14 Tagen erfolgen, um den Termin zu garantieren."
+    }
+]

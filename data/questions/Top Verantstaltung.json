@@ -1,0 +1,22 @@
+[
+    {
+        "frage": "Wie viele Einladungsmails wurden bereits verschickt und wie viele Teilnehmer haben bis jetzt zugesagt?",
+        "antwort": "Es wurden 50 Einladungsmails verschickt und 30 Teilnehmer haben zugesagt."
+    },
+    {
+        "frage": "Wie viele Personen sind aktuell auf der Teilnehmerliste und wie viele davon sind noch unbestätigt?",
+        "antwort": "Aktuell befinden sich 40 Personen auf der Teilnehmerliste, davon sind 10 noch unbestätigt."
+    },
+    {
+        "frage": "Welche spezifischen Kriterien wurden bei der Erstellung der Teilnehmerliste berücksichtigt?",
+        "antwort": "Die Kriterien umfassen die Zugehörigkeit zu bestimmten Abteilungen, vorherige Teilnahme an ähnlichen Veranstaltungen und aktuelle Projekte."
+    },
+    {
+        "frage": "Welche Meilensteine wurden bei der Versendung der Einladungsmails bereits erreicht und welche stehen noch aus?",
+        "antwort": "Es wurde der Meilenstein 'Erstellung der Mailvorlage' erreicht, der Meilenstein 'Versendung der letzen Einladungen' steht noch aus."
+    },
+    {
+        "frage": "Wie hoch ist die Rücklaufquote der Einladungsmails und wie wurde diese gemessen?",
+        "antwort": "Die Rücklaufquote beträgt derzeit 60%, gemessen an den erhaltenen Antworten im Vergleich zu den verschickten Mails."
+    }
+]

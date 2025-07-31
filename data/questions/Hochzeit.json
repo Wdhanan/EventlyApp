@@ -1,0 +1,22 @@
+[
+    {
+        "frage": "Wie viele Einladungen wurden bisher verschickt und wie viele Rückmeldungen wurden bereits erhalten?",
+        "antwort": "Es wurden 50 Einladungen verschickt und 30 Rückmeldungen erhalten."
+    },
+    {
+        "frage": "Wie viele Personen sind aktuell in der Teilnehmerliste eingetragen?",
+        "antwort": "Aktuell sind 45 Personen in der Teilnehmerliste eingetragen."
+    },
+    {
+        "frage": "Welche maximale Anzahl von Gästen wurde für das Event festgelegt?",
+        "antwort": "Die maximale Anzahl von Gästen wurde auf 60 festgelegt."
+    },
+    {
+        "frage": "Welcher Prozentsatz der Einladungen wurde bereits bearbeitet (verschickt bzw. beantwortet)?",
+        "antwort": "100% der Einladungen wurden verschickt und 60% wurden beantwortet."
+    },
+    {
+        "frage": "Gibt es bereits eine Prioritätenliste für die Teilnehmer, falls mehr Anmeldungen als verfügbare Plätze eingehen?",
+        "antwort": "Ja, es gibt eine Prioritätenliste basierend auf der Reihenfolge der Rückmeldungen."
+    }
+]
