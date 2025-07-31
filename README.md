@@ -679,9 +679,6 @@ Features:
 
 ---
 
-
----
-
 # 🧪 Unit Testing & Testabdeckung
 
 ## 📊 Testabdeckung
