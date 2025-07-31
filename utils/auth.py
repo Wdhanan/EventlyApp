@@ -11,36 +11,49 @@ ACCENT_COLOR = "#FFA500"
 TEXT_COLOR = "#333333"
 DARK_BG = "#1E1E1E"
 DARK_CARD = "#2D2D2D"
+dark_mode = st.session_state.get("dark_mode", False)
 
 def register():
-    # Professional styling for the form - improved to reduce white space
+
     st.markdown("""
     <style>
     /* Clean up white blocks and force better styling */
     [data-testid="stVerticalBlock"]:has(> div.element-container:empty) {
         display: none !important;
     }
-    
+    /* Disable scrolling on auth pages */
+    [data-testid="stAppViewContainer"] {
+        background-color: {'#1E1E1E' if dark_mode else '#f5f7fa'} !important;
+        overflow: hidden !important;
+    }
+    /* Hide scrollbar */
+    ::-webkit-scrollbar {
+        display: none !important;
+    }
+                
     /* Form container styling with reduced margins */
     .auth-form-container {
-        background-color: white;
+        background-color: {'#2D2D2D' if dark_mode else 'white'} !important;
         padding: 30px 40px;
         border-radius: 12px;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         max-width: 420px;
         margin: 10px auto 30px;
         border-top: 5px solid #4A90E2;
+        height: auto !important;
+        min-height: unset !important;
+        color: {TEXT_COLOR if dark_mode else '#333'} !important;
     }
     
     /* Form title with reduced margin */
     .auth-form-title {
-        color: #333;
+        color: {TEXT_COLOR if dark_mode else '#333'} !important;
         text-align: center;
         font-size: 24px;
         font-weight: 600;
         margin-bottom: 20px;
         padding-bottom: 15px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid {'#444' if dark_mode else '#eee'} !important;
     }
     
     /* Override input styling with reduced spacing */
@@ -52,14 +65,15 @@ def register():
     .stTextInput > label {
         font-weight: 600 !important;
         font-size: 14px !important;
-        color: #555 !important;
+        color: {TEXT_COLOR if dark_mode else '#555'} !important;
         margin-bottom: 3px !important;
     }
     
     /* Style inputs */
     .stTextInput input {
-        background-color: #f8f9fa !important;
-        border: 1px solid #ddd !important;
+        background-color: {'#3A3A3A' if dark_mode else '#f8f9fa'} !important;
+        border: 1px solid {'#555' if dark_mode else '#ddd'} !important;
+        color: {TEXT_COLOR if dark_mode else '#333'} !important;
         border-radius: 8px !important;
         padding: 12px 15px !important;
         font-size: 15px !important;
@@ -73,8 +87,8 @@ def register():
     
     /* Button styling */
     .stButton > button {
-        background-color: #4A90E2 !important;
-        color: white !important;
+       background-color: {ACCENT_COLOR} !important;
+        color: {'#222' if dark_mode else 'white'} !important;
         padding: 12px 20px !important;
         font-size: 16px !important;
         font-weight: 500 !important;
@@ -86,7 +100,7 @@ def register():
     }
     
     .stButton > button:hover {
-        background-color: #3a7bc8 !important;
+        background-color: {'#E69500' if dark_mode else '#3a7bc8'} !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
     }
@@ -95,7 +109,7 @@ def register():
     .auth-footer {
         text-align: center;
         margin-top: 15px;
-        color: #777;
+        color: {'#BBBBBB' if dark_mode else '#777'} !important;
         font-size: 14px;
     }
     
@@ -171,11 +185,21 @@ def register():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def login(cookies):
-    # Professional styling for the form - improved to reduce white space
+    
     st.markdown("""
     <style>
     /* Clean up white blocks and force better styling */
     [data-testid="stVerticalBlock"]:has(> div.element-container:empty) {
+        display: none !important;
+    }
+                
+    /* Disable scrolling on auth pages */
+    [data-testid="stAppViewContainer"] {
+        background-color: {'#1E1E1E' if dark_mode else '#f5f7fa'} !important;        
+        overflow: hidden !important;
+    }
+    /* Hide scrollbar */
+    ::-webkit-scrollbar {
         display: none !important;
     }
     
@@ -188,6 +212,9 @@ def login(cookies):
         max-width: 420px;
         margin: 10px auto 30px;
         border-top: 5px solid #4A90E2;
+        height: auto !important;
+        min-height: unset !important;
+        color: {TEXT_COLOR if dark_mode else '#333'} !important;
     }
     
     /* Logo styling with reduced margin */
@@ -203,7 +230,7 @@ def login(cookies):
     
     /* Form title with reduced margin */
     .auth-form-title {
-        color: #333;
+        color: {TEXT_COLOR if dark_mode else '#333'} !important;
         text-align: center;
         font-size: 24px;
         font-weight: 600;
@@ -221,14 +248,15 @@ def login(cookies):
     .stTextInput > label {
         font-weight: 600 !important;
         font-size: 14px !important;
-        color: #555 !important;
+        color: {TEXT_COLOR if dark_mode else '#555'} !important;
         margin-bottom: 3px !important;
     }
     
     /* Style inputs */
     .stTextInput input {
-        background-color: #f8f9fa !important;
-        border: 1px solid #ddd !important;
+        background-color: {'#3A3A3A' if dark_mode else '#f8f9fa'} !important;
+        border: 1px solid {'#555' if dark_mode else '#ddd'} !important;
+        color: {TEXT_COLOR if dark_mode else '#333'} !important;
         border-radius: 8px !important;
         padding: 12px 15px !important;
         font-size: 15px !important;
@@ -242,8 +270,8 @@ def login(cookies):
     
     /* Button styling */
     .stButton > button {
-        background-color: #4A90E2 !important;
-        color: white !important;
+        background-color: {ACCENT_COLOR} !important;
+        color: {'#222' if dark_mode else 'white'} !important;
         padding: 12px 20px !important;
         font-size: 16px !important;
         font-weight: 500 !important;
@@ -255,7 +283,7 @@ def login(cookies):
     }
     
     .stButton > button:hover {
-        background-color: #3a7bc8 !important;
+        background-color: {'#E69500' if dark_mode else '#3a7bc8'} !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
     }
@@ -264,7 +292,7 @@ def login(cookies):
     .auth-footer {
         text-align: center;
         margin-top: 15px;
-        color: #777;
+        color: {'#BBBBBB' if dark_mode else '#777'} !important;
         font-size: 14px;
     }
     
@@ -298,7 +326,7 @@ def login(cookies):
     
     
     st.markdown('<div class="auth-logo"><img src="https://cdn-icons-png.flaticon.com/512/2476/2476589.png" alt="Logo"></div>', unsafe_allow_html=True)
-    st.markdown('<h2 class="auth-form-title">Willkommen bei Event Planer!</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="auth-form-title">Welcome back!</h2>', unsafe_allow_html=True)
     
     with st.form("login_form_new"):
         username = st.text_input("Benutzername", key="login_username_new")
@@ -465,3 +493,18 @@ def update_user_quiz_count(user_id):
         finally:
             conn.close()
     return None, False
+
+
+def set_user_premium(username):
+    conn = create_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE users SET is_premium = 1 WHERE username = ?", (username,))
+            conn.commit()
+            return True
+        except Error as e:
+            st.error(f"Fehler beim Upgrade: {e}")
+        finally:
+            conn.close()
+    return False

@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: activitytracker:latest
+    ports:
+      - "8501:8501"
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+    env_file: .env
+    depends_on:
+      - backend
+      - import_service
+      - redis
+
+  backend:
+    image: activitytracker:latest
+    ports:
+      - "8000:8000"
+    command: uvicorn utils.chat_api:app --host 0.0.0.0 --port 8000
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - backend_logs:/app/logs
+    depends_on:
+      - redis
+
+  import_service:
+    image: activitytracker:latest
+    ports:
+      - "8001:8001"
+    command: uvicorn utils.import_data:app --host 0.0.0.0 --port 8001
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - import_logs:/app/logs
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  redis_data:
+  backend_logs:
+  import_logs:

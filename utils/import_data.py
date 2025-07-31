@@ -61,7 +61,7 @@ async def import_events(user_id: int, file_type: str = Query("csv"), file: Uploa
                     if not title:
                         continue
 
-                    # Event erstellen (nur einmal pro Titel)
+                    # Event erstellen
                     event_id = None
                     if title not in events_processed:
                         # Prüfe ob Event bereits existiert
@@ -91,7 +91,7 @@ async def import_events(user_id: int, file_type: str = Query("csv"), file: Uploa
                         if event_result:
                             event_id = event_result["id"]
 
-                    # Aufgabe hinzufügen (falls vorhanden)
+                    # Aufgabe hinzufügen
                     if event_id and "Aufgabe Titel" in row and pd.notna(row["Aufgabe Titel"]):
                         task_title = str(row["Aufgabe Titel"]).strip()
                         task_content = str(row["Aufgabe Inhalt"]).strip() if "Aufgabe Inhalt" in row and pd.notna(row["Aufgabe Inhalt"]) else ""

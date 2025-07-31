@@ -1,12 +1,10 @@
 import sqlite3
 from sqlite3 import Error
-import os
 
 def create_connection():
     """Erstelle eine Verbindung zur SQLite-Datenbank."""
     conn = None
     try:
-        os.makedirs("data", exist_ok=True)
         conn = sqlite3.connect("data/eventmanager.db")  
         return conn
     except Error as e:
@@ -111,7 +109,7 @@ def create_tables():
                 )
             """)
 
-            # Tabelle für Statistiken (mit fehlendem Komma korrigiert)
+            # Tabelle für Statistiken
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS stats (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -121,11 +119,7 @@ def create_tables():
                 score INTEGER NOT NULL,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id),
-<<<<<<< HEAD
                 FOREIGN KEY (event_id) REFERENCES events (id),
-=======
-                FOREIGN KEY (event_id) REFERENCES events (id)
->>>>>>> b6e1ea0f4313903e1659d9e4c9b406ec103080b6
                 FOREIGN KEY (task_id) REFERENCES tasks (id)
             )
         """)
@@ -198,7 +192,6 @@ def get_username_by_id(user_id):
             conn.close()
     return username
 
-<<<<<<< HEAD
 def add_is_premium_column():
     conn = create_connection()
     if conn:
@@ -249,10 +242,3 @@ def add_quiz_limit_columns():
 
 if __name__ == "__main__":
     create_tables()
-=======
-
-
-if __name__ == "__main__":
-    create_tables()
-    
->>>>>>> b6e1ea0f4313903e1659d9e4c9b406ec103080b6

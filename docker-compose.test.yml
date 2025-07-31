@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  test:
+    image: gitlab.ai.it.hs-worms.de:5050/inf4487/activitytracker
+    command: >
+      sh -c "pytest tests/ &&
+             uvicorn utils.chat_api:app --reload --host 0.0.0.0 --port 8000 &
+             uvicorn utils.import_data:app --reload --host 0.0.0.0 --port 8001"
+    env_file:
+      - .env.test
+    volumes:
+      - ./tests:/app/tests

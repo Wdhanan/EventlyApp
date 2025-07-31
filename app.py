@@ -5,7 +5,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from utils.mascot_reactions import show_mascot_reaction
 from utils.auth import register, login, logout, load_all_users, update_profile, TEXT_COLOR, get_user_premium_status_and_quiz_limits
-from utils.event_manager import create_event, edit_event, delete_event, load_events, load_shared_events, load_tasks, share_event
+from utils.event_manager import create_event, edit_event, delete_event, load_events, load_shared_events, load_tasks, send_upgrade_request_email, share_event
 from utils.task_manager import save_task, edit_task, delete_task, load_shared_tasks
 from utils.event_question_generator import chat_with_deepseek, quiz_mode, DAILY_QUIZ_LIMIT_FREE
 from utils.event_stats_manager import calculate_progress_status, load_stats, display_event_statistics
@@ -13,7 +13,6 @@ import os
 import pandas as pd
 import io
 import base64
-<<<<<<< HEAD
 from utils.database import create_connection, create_tables
 from streamlit_cookies_manager import EncryptedCookieManager
 
@@ -231,12 +230,10 @@ body > div:first-child {{
 </style>
 """
 
-# Füge MAIN_CSS am Anfang deiner App ein, bevor andere UI-Elemente gerendert werden
 st.markdown(MAIN_CSS, unsafe_allow_html=True)
 
 
 # === Dark Mode Overrides and JS Injection ===
-# Dieser Block wird NACH MAIN_CSS geladen. Die Regeln hier überschreiben die Standardwerte
 # NUR WENN der Dunkelmodus aktiv ist.
 if st.session_state.dark_mode:
     st.markdown(f"""
@@ -327,6 +324,70 @@ if st.session_state.dark_mode:
             .footer a {{
                 color: var(--accent) !important; /* Akzentfarbe für Links im Dark Mode */
             }}
+            .main .block-container{{
+                background-color: var(--dark-card) !important;
+            }}
+            
+            [data-testid="stAppViewContainer"] {{
+                background-color: black !important;
+            }}
+                
+            /* Dark mode for footer */
+        .footer {{
+            background-color: {DARK_CARD} !important;
+            color: #E0E0E0 !important;
+            border-top: 1px solid #444 !important;
+        }}
+        .footer a {{
+            color: {ACCENT_COLOR} !important;
+        }}
+        .fixed-header-container{{
+            background-color: {DARK_CARD} !important;
+        }}
+
+        .header-divider {{
+            background:  1px solid #444 !important;
+        }}
+
+            /* Dark mode for header/navigation */
+        [data-testid="stHeader"] {{
+            background-color: {DARK_CARD} !important;
+        }}
+        [data-testid="stSidebar"] .stRadio label {{
+            color: #E0E0E0 !important;
+        }}
+        
+        /* Fix for other elements that might not be dark */
+        .st-emotion-cache-1v0mbdj {{
+            background-color: {DARK_CARD} !important;
+        }}
+
+        .auth-form-container {{
+        background-color: {DARK_CARD} !important;
+        color: {TEXT_COLOR} !important;
+        }}
+    
+        .auth-form-title {{
+            color: {TEXT_COLOR} !important;
+        }}
+    
+        .stTextInput input {{
+            background-color: #3A3A3A !important;
+            color: {TEXT_COLOR} !important;
+            border-color: #555 !important;
+        }}
+    
+        .stTextInput label {{
+            color: {TEXT_COLOR} !important;
+        }}
+        </style>
+        <script>
+            // Fügt die 'dark-mode' Klasse zum body Element des übergeordneten Dokuments hinzu
+            const body = window.parent.document.querySelector('body');
+            if (body) {{
+                body.classList.add('dark-mode');
+            }}
+        </script>
         </style>
         <script>
             // Fügt die 'dark-mode' Klasse zum body Element des übergeordneten Dokuments hinzu
@@ -381,11 +442,6 @@ st.markdown(f"""
 
 
 
-=======
-from utils.database import create_tables
-
-
->>>>>>> b6e1ea0f4313903e1659d9e4c9b406ec103080b6
 # database initialization
 if not os.path.exists("data"):
     os.makedirs("data")
@@ -422,13 +478,79 @@ def get_chat_history(user_id, event_id=None, task_id=None):
         return []
 
 def display_page_header(title):
-    col1, col2 = st.columns([1, 10])
-    with col1:
-        if title in PAGE_IMAGES:
-            st.image(PAGE_IMAGES[title], width=60)
-    with col2:
-        st.header(f"{NAV_ICONS.get(title, '')} {title}")
-    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    /* Fixierter Header Container */
+    .fixed-header-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        background: white;
+        padding: 1rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Zentriert den gesamten Inhalt horizontal */
+        padding-bottom: 0.5rem;
+    }
+    
+    /* Header Content Wrapper */
+    .header-content {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 1200px; /* Begrenzte Breite für bessere Lesbarkeit */
+    }
+    
+    /* Linke Spalte (Icon) */
+    .header-col1 {
+        flex: 1;
+        display: flex;
+        justify-content: flex-start;
+    }
+    
+    /* Mittlere Spalte (Text) - jetzt zentriert */
+    .header-col2 {
+        flex: 10;
+        text-align: center; /* Text zentrieren */
+    }
+    
+    /* Divider */
+    .header-divider {
+        height: 1px;
+        width: 100%;
+        max-width: 1200px;
+        background: linear-gradient(to right, transparent, var(--primary), transparent);
+        margin: 0.5rem 0 0 0;
+        border: none;
+    }
+    
+    /* Anpassung für Hauptinhalt */
+    .main-content {
+        padding-top: 110px !important;
+    }
+    
+    /* Sidebar-Anpassung */
+    [data-testid="stSidebar"] {
+        padding-top: 110px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown(f"""
+    <div class="fixed-header-container">
+        <div class="header-content">
+            <div class="header-col1">
+                {f'<img src="{PAGE_IMAGES[title]}" width="60">' if title in PAGE_IMAGES else ''}
+            </div>
+            <div class="header-col2">
+                <h2>{NAV_ICONS.get(title, '')} {title}</h2>
+            </div>
+        </div>
+        <div class="header-divider"></div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # Create a new function for downloading files
@@ -439,7 +561,7 @@ def create_download_link(df, filename, text):
     return href
 
 
-# Helper function to clear chat history (you'll need to implement this)
+# Helper function to clear chat history
 def clear_chat_history(user_id, event_id, task_id=None):
         params = {"user_id": user_id, "event_id": event_id}
         if task_id:
@@ -494,11 +616,7 @@ NAV_ICONS = {
     "Registrierung": "📝",
     "API-Key bearbeiten": "🔧",
     "Export" : "📤",
-<<<<<<< HEAD
     "Chat": "💬"
-=======
-    "API-Key konfigurieren": "🔧"
->>>>>>> b6e1ea0f4313903e1659d9e4c9b406ec103080b6
 }
 
 BACKGROUND_CSS = f"""
@@ -768,7 +886,7 @@ if st.session_state.dark_mode:
         unsafe_allow_html=True
     )
 else:
-    # Hier die Stile für den Hellmodus (Standard)
+    # Hier die Stile für den Hellmodus
     st.markdown(
         """
         <style>
@@ -893,7 +1011,6 @@ else:
             key="main_nav_radio"
         )
         
-        # Aktualisiere die Session State nur wenn sich die Auswahl ändert
         if selected_page != st.session_state["main_navigation"]:
             st.session_state["main_navigation"] = selected_page
             st.rerun()
@@ -944,7 +1061,7 @@ elif not st.session_state["logged_in"]:
 else:
     if page == "Dashboard":
         display_page_header("Dashboard")
-        # NEU: Anzeige des Premium-Status und Quiz-Limits
+        #Anzeige des Premium-Status und Quiz-Limits
         is_premium_user, daily_quiz_count, _ = get_user_premium_status_and_quiz_limits(st.session_state.user_id)
         
         st.markdown("<br>", unsafe_allow_html=True) # Abstand
@@ -1023,7 +1140,6 @@ else:
 
         st.markdown("<br>", unsafe_allow_html=True) # Abstand
         
-        # Modernes, sauberes CSS
         st.markdown("""
         <style>
         .dashboard-container {
@@ -1202,7 +1318,7 @@ else:
                 show_imported = st.checkbox("Importierte Events anzeigen", value=True, key="show_imported_checkbox")
                 filtered_events = [e for e in events if show_imported or (len(e) > 3 and not e[3])]
                 
-                if filtered_events:  # Nur anzeigen wenn gefilterte Events vorhanden sind
+                if filtered_events: 
                     # Pagination
                     items_per_page = 2
                     total_pages = max(1, (len(filtered_events) + items_per_page - 1) // items_per_page)
@@ -1506,7 +1622,6 @@ else:
         from datetime import datetime
         from utils.event_question_generator import chat_with_deepseek
 
-        display_page_header("Chat")
 
         events = load_events(st.session_state["user_id"])
         if not events:
@@ -1698,7 +1813,7 @@ else:
                         except Exception as e:
                             st.error(f"Fehler beim Senden der Nachricht: {e}")
                 else:
-                    # Aufgabenliste anzeigen (für alle anderen Fälle)
+                    # Aufgabenliste anzeigen
                     st.subheader("🗂️ Aufgaben")
 
                     per_page = 4
@@ -1725,7 +1840,6 @@ else:
                                     </div>
                                     """, unsafe_allow_html=True)
                                     
-                                    # Normaler Streamlit-Button
                                     if st.button("Chat öffnen", key=f"open_chat_{task_id}_{event_id}_{idx}", 
                                                use_container_width=True):
                                         st.session_state.selected_task_id = task_id
@@ -1793,7 +1907,6 @@ else:
         # Zwei-Spalten Layout
         col1, col2 = st.columns(2)
 
-        # ------------------- EXPORT (Linke Spalte) ------------------- #
         with col1:
             st.markdown("### 📤 Events und Aufgaben exportieren")
             st.write("Wähle die Events aus, die du exportieren möchtest, und das gewünschte Format.")
@@ -1879,7 +1992,6 @@ else:
 
             st.markdown('</div>', unsafe_allow_html=True)  # END EXPORT-CARD
 
-        # ------------------- IMPORT (Rechte Spalte) ------------------- #
         with col2:
             st.markdown("### 📥 Events und Aufgaben importieren")
             st.write("Importiere Events, Aufgaben und ggf. Bewertungen aus einer CSV- oder Excel-Datei.")
@@ -2062,7 +2174,7 @@ else:
             st.warning("Keine Events gefunden. Bitte erstelle zuerst ein Event.")
 
     elif page == "Statistiken":
-        display_page_header("Lernfortschritt & Statistiken")
+        display_page_header("Statistiken")
         events = load_events(st.session_state["user_id"])
         
         if events:
@@ -2108,13 +2220,24 @@ else:
             color: white;
             font-size: 24px;
             font-weight: bold;
-        }
-        .profile-form .stTextInput {
-            margin-bottom: 1rem !important;
-        }
-        .profile-form .stButton>button {
+        }          
+            .profile-form .stButton>button {
             width: 100% !important;
             margin-top: 1rem !important;
+        }
+        .profile-form{
+        height: auto !important;
+        min-height: unset !important;
+                    
+        }
+                    
+        /* Disable scrolling on auth pages */
+        [data-testid="stAppViewContainer"] {
+            overflow: hidden !important;
+        }
+        /* Hide scrollbar */
+        ::-webkit-scrollbar {
+            display: none !important;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -2131,30 +2254,25 @@ else:
             """, unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-            profilstatus = "🌟 Premium-Nutzer" if st.session_state.get("is_premium") else "🔓 Kostenloses Konto"
-            farbe = "green" if st.session_state.get("is_premium") else "gray"
+            is_premium_user, daily_quiz_count, _ = get_user_premium_status_and_quiz_limits(st.session_state.user_id)
+        
+            col_premium, col_quiz_limit = st.columns([1, 1])
+
+            profilstatus = "🌟 Premium-Nutzer" if is_premium_user else "🔓 Kostenloses Konto"
+            farbe = "green" if is_premium_user else "gray"
 
             st.markdown(f"""
                 <div style="padding:1rem; background-color:#f0f2f5; border-left:6px solid {farbe}; border-radius:10px; margin-bottom:1rem;">
                     <strong>Status:</strong> <span style="color:{farbe}; font-weight:bold;">{profilstatus}</span><br>
-                    { "Du hast unbegrenzten Zugriff auf alle Funktionen." if st.session_state.get("is_premium") else "Du kannst bis zu 3 Events erstellen. Upgrade auf Premium für mehr!" }
+                    { "Du hast unbegrenzten Zugriff auf alle Funktionen." if is_premium_user else "Du kannst bis zu 3 Events erstellen. Upgrade auf Premium für mehr!" }
                 </div>
             """, unsafe_allow_html=True)
 
-            if not st.session_state.get("is_premium"):
+            if not is_premium_user:
                 if st.button("Jetzt auf Premium upgraden", key="upgrade_profile_button"):
-                    conn = create_connection()
-                    if conn:
-                        cursor = conn.cursor()
-                        cursor.execute("UPDATE users SET is_premium = 1 WHERE id = ?", (st.session_state.user_id,))
-                        conn.commit()
-                        conn.close()
-                    st.session_state.is_premium = True
-                    cookies = st.session_state.get("cookies")
-                    cookies["is_premium"] = "1"
-                    cookies.save()
-                    st.success("Dein Konto wurde auf Premium umgestellt.")
+                    success = send_upgrade_request_email(cookies.get("username"))
                     st.rerun()
+                
             
             # Bearbeitungsformular
             with st.form("profile_form"):
@@ -2369,7 +2487,6 @@ else:
             """, unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
-<<<<<<< HEAD
 
 
 # Sichtbarer, großer Footer mit Icons
@@ -2429,5 +2546,3 @@ st.markdown("""
     </a> 
 </div> 
 """, unsafe_allow_html=True)
-=======
->>>>>>> b6e1ea0f4313903e1659d9e4c9b406ec103080b6

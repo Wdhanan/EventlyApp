@@ -1,0 +1,16 @@
+stages:
+  - build
+
+build_image:
+  stage: build
+  image: quay.io/buildah/stable
+  variables:
+    STORAGE_DRIVER: vfs
+  script:
+    - buildah login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - buildah bud -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - buildah push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - buildah tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE:latest
+    - buildah push $CI_REGISTRY_IMAGE:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'

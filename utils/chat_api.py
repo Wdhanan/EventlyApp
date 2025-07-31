@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from typing import Optional, List
 import json
 from datetime import datetime
-from utils.database import create_connection
 import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -57,7 +56,7 @@ def get_chat_history(
     """
     Lädt die Chat-Historie für einen Benutzer, Event und/oder Task.
     """
-    conn = create_connection()
+    conn = get_db()
     if not conn:
         raise HTTPException(status_code=500, detail="Datenbankverbindung fehlgeschlagen")
     
@@ -121,7 +120,7 @@ def send_chat_message(message: ChatMessage):
     """
     Speichert eine Chat-Nachricht in der Datenbank.
     """
-    conn = create_connection()
+    conn = get_db()
     if not conn:
         raise HTTPException(status_code=500, detail="Datenbankverbindung fehlgeschlagen")
     
@@ -165,7 +164,7 @@ def clear_chat_history(
     """
     Löscht die Chat-Historie für einen Benutzer, Event und/oder Task.
     """
-    conn = create_connection()
+    conn = get_db()
     if not conn:
         raise HTTPException(status_code=500, detail="Datenbankverbindung fehlgeschlagen")
     
@@ -210,7 +209,7 @@ def get_chat_stats(user_id: int, event_id: Optional[int] = None):
     """
     Gibt Statistiken über Chat-Aktivität zurück.
     """
-    conn = create_connection()
+    conn = get_db()
     if not conn:
         raise HTTPException(status_code=500, detail="Datenbankverbindung fehlgeschlagen")
     
@@ -271,7 +270,7 @@ def get_chat_history_for_streamlit(user_id, event_id=None, task_id=None):
     """
     Direkte Datenbankabfrage für Streamlit (Fallback ohne API-Call).
     """
-    conn = create_connection()
+    conn = get_db()
     if not conn:
         return []
     
@@ -322,7 +321,7 @@ def save_chat_message_direct(user_id, event_id, task_id, role, content, timestam
     """
     Direkte Speicherung von Chat-Nachrichten ohne API-Call.
     """
-    conn = create_connection()
+    conn = get_db()
     if not conn:
         return False
     

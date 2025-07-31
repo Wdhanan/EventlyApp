@@ -1,45 +1,20 @@
-# Multi-Stage Build für optimierte Image-Größe
-FROM python:3.9-slim as builder
-
-WORKDIR /app
-COPY requirements.txt .
-
-# Installiere Build-Abhängigkeiten
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc python3-dev && \
-    pip install --user -r requirements.txt && \
-    apt-get remove -y gcc python3-dev && \
-    apt-get autoremove -y
-
-# Finales Image
 FROM python:3.9-slim
 
 WORKDIR /app
 
-# Kopiere nur notwendige Dateien
-COPY --from=builder /root/.local /root/.local
+RUN apt-get update && apt-get install -y gcc python3-dev curl && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
 COPY . .
 
-# Datenbank-Verzeichnis erstellen
-RUN mkdir -p /app/data && \
-    chmod a+rwx /app/data
+ENV PYTHONPATH=/app
+ENV STREAMLIT_SERVER_HEADLESS=true
+ENV STREAMLIT_SERVER_PORT=8501
+ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 
-# Umgebungsvariablen
-ENV PATH=/root/.local/bin:$PATH \
-    STREAMLIT_SERVER_PORT=8501 \
-    PYTHONPATH=/app \
-    STREAMLIT_SERVER_HEADLESS=true
+EXPOSE 8000 8001 8501
 
-# Port freigeben
-EXPOSE 8501
-
-# Gesundheitscheck
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8501/_stcore/health || exit 1
-
-# Nicht als root laufen
-RUN useradd -m appuser && chown -R appuser /app
-USER appuser
-
-# Startbefehl
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["sh", "-c", "streamlit run app.py & uvicorn utils.chat_api:app --host 0.0.0.0 --port 8000 & uvicorn utils.import_data:app --host 0.0.0.0 --port 8001"]

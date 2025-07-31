@@ -1,3 +1,8 @@
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from http import cookies
+import os
+import smtplib
 import streamlit as st
 import sqlite3
 from sqlite3 import Error
@@ -292,3 +297,37 @@ def load_shared_events(user_id):
         finally:
             conn.close()
     return []
+
+
+def send_upgrade_request_email(username):
+    """Sendet eine Premium-Anfrages-E-Mail"""
+    try:
+        # Konfiguration aus .env laden
+        smtp_server = os.getenv("SMTP_SERVER")
+        smtp_port = int(os.getenv("SMTP_PORT"))
+        password = os.getenv("SMTP_PASSWORD")
+        use_tls = os.getenv("SMTP_USE_TLS", "True").lower() == "true"
+
+        # E-Mail erstellen
+        msg = MIMEMultipart()
+        msg['From'] = "actilywdh@gmail.com"
+        msg['To'] = "actilywdh@gmail.com"
+        msg['Subject'] = "Premium-Upgrade !!!" + "von Username: " + username
+
+        body = """
+        <h2>Ich hätte gerne ein Premium Konto</h2>
+        """
+        msg.attach(MIMEText(body, 'html'))
+
+        # Verbindung zum SMTP-Server
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            if use_tls:
+                server.starttls()
+            server.login("wdhanan03@gmail.com", password)
+            server.send_message(msg)
+
+        st.success("Deine Anfrage wurde erfolgreich gesendet. Du wirst benachrichtigt, sobald der Admin dich freischaltet.")
+        return True
+    except Exception as e:
+        print(f"Fehler beim E-Mail-Versand: {e}")
+        return False
