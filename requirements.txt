@@ -6,3 +6,4 @@ pandas
 plotly
 pytest
 fastapi
+streamlit-cookies-manager
