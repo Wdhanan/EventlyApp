@@ -606,7 +606,7 @@ Wenn ein*e Nutzer*in den Quiz-Modus aktiviert, wird folgende Logik ausgelöst:
 Hier ist ein schematisches Diagramm, wie dein Deployment mit GitHub Actions und Docker abläuft:
 
 ## 🚀 Deployment der Anwendung
-![Deployment](./Deployment.jpg)
+![Deployment](./Deployment.png)
 
 Unsere Anwendung besteht aus einer Streamlit-Weboberfläche sowie zwei FastAPI-Services,
 die zusammen in einem Docker-Container bereitgestellt werden. Das Deployment erfolgt automatisiert über GitHub Actions.
